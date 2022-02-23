@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Are you sure you want to stop?"
+        android:fontFamily="@font/roboto"
+        android:textSize="22sp"
+        android:textAlignment="center"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnStopYes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="yes"
+            android:layout_margin="10dp"
+            android:fontFamily="@font/roboto"
+            android:background="@color/grey4"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnStopNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="no"
+            android:layout_margin="10dp"
+            android:fontFamily="@font/roboto"
+            android:background="@color/light_blue"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

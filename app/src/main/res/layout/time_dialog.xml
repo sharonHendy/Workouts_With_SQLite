@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="#D2292626">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:fontFamily="@font/roboto"
+        android:text="set the time"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold">
+
+    </TextView>
+
+    <View
+        android:layout_height="1dp"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp"
+        android:background="@color/black"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <NumberPicker
+                android:id="@+id/minute_picker"
+                android:layout_width="wrap_content"
+                android:layout_height="130dp"
+                android:layout_gravity="center"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintEnd_toStartOf="@+id/textView"
+                app:layout_constraintTop_toTopOf="parent"
+                android:theme="@style/general"/>
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textColor="@color/white"
+                android:textSize="26sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+            <NumberPicker
+                android:id="@+id/second_picker"
+                android:layout_width="wrap_content"
+                android:layout_height="130dp"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@+id/textView"
+                app:layout_constraintTop_toTopOf="parent"
+                android:gravity="center"
+                android:theme="@style/general"
+                />
+
+
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="minutes         seconds"
+        android:fontFamily="@font/roboto"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <View
+        android:layout_height="1dp"
+        android:layout_width="match_parent"
+        android:background="@color/black"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnSetTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="set"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:fontFamily="@font/roboto"
+        android:layout_marginTop="8dp"
+        android:background="@color/light_blue"/>
+
+</LinearLayout>

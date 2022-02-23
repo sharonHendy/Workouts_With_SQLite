@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="1dp"
+    android:backgroundTint="@color/grey3"
+    android:id="@+id/workoutView"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tv_fav"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:drawableBottom="@drawable/favorite_small"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="12dp"
+            android:layout_marginStart="12dp"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnAddToCombo"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/button_for_combo_select"
+            android:forceDarkAllowed="false"
+            android:textColor="@color/white"
+            android:theme="@style/general"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/workoutName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:layout_marginStart="40dp"
+            android:background="?attr/selectableItemBackground"
+            android:fontFamily="@font/roboto"
+            android:padding="8dp"
+            android:text="workoutName"
+            android:textColor="@color/light_blue_WN"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/totalTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="8dp"
+            android:fontFamily="@font/roboto"
+            android:padding="10dp"
+            android:text="time"
+            android:textColor="@color/light_gray"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toStartOf="@+id/btnPlay"
+            app:layout_constraintTop_toBottomOf="@+id/workoutName" />
+
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnPlay"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/roundedbutton"
+            android:backgroundTint="@color/teal"
+            android:drawableBottom="@drawable/play"
+            android:drawableTint="@color/white"
+            android:padding="12dp"
+            android:theme="@style/general"
+            app:layout_constraintEnd_toStartOf="@+id/btnEdit"
+            app:layout_constraintTop_toBottomOf="@+id/workoutName" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnEdit"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="10dp"
+            android:background="?attr/selectableItemBackground"
+            android:backgroundTint="@color/black"
+            android:drawableBottom="@drawable/create"
+            android:drawableTint="@color/white"
+            android:padding="3dp"
+            app:icon="@drawable/create"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/workoutName" />
+
+        <FrameLayout
+            android:id="@+id/rv_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/totalTime"
+            android:animateLayoutChanges="true"
+            android:layout_marginTop="4dp"
+            android:background="@color/grey2"/>
+<!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:id="@+id/rv_workoutExercises"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/totalTime"-->
+<!--            />-->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+</com.google.android.material.card.MaterialCardView>

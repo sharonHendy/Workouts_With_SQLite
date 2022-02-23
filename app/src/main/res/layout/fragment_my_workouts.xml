@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MyWorkoutsFragment"
+    android:background="@color/grey"
+    android:id="@+id/frg_myWorkouts"
+    android:tag="MY_WORKOUTS_FRAGMENT">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/fragmentContainer"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar1"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            >
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnCombo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/black"
+                    android:drawableBottom="@drawable/donut_large"
+                    android:padding="5dp"
+                    android:background="?attr/selectableItemBackground"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnFavorites"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/black"
+                    android:drawableBottom="@drawable/favorite_border"
+                    android:background="?attr/selectableItemBackground"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:padding="5dp"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <ScrollView
+            android:id="@+id/sv_myWorkouts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <LinearLayout
+                android:id="@+id/ll_MyWorkouts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="8dp"
+                android:paddingBottom="110dp"
+                android:animateLayoutChanges="true"
+                android:orientation="vertical" />
+
+<!--            <androidx.recyclerview.widget.RecyclerView-->
+<!--                android:id="@+id/rv_MyWorkouts"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginLeft="8dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:layout_marginRight="8dp"-->
+<!--                android:paddingBottom="110dp"-->
+<!--                />-->
+
+        </ScrollView>
+
+    </LinearLayout>
+
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/btnCreate"
+        android:fontFamily="@font/roboto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:theme="@style/MyMaterialTheme"
+        android:text="@string/create"
+        app:icon="@drawable/create"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="30dp"
+        android:backgroundTint="@color/light_blue"
+        app:iconTint="@color/white"
+        android:textColor="@color/white"
+        android:elevation="6dp"
+        android:animateLayoutChanges="true"
+               />
+</FrameLayout>

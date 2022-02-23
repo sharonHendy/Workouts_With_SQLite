@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/fab_backToMyWorkouts"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_margin="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+       android:drawableBottom="@drawable/arrow_back_long"
+        android:background="@color/grey"
+        android:padding="5dp"
+        android:tint="@color/white"/>
+
+    <TextView
+        android:id="@+id/playedWorkoutName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="workout name"
+        android:textSize="35sp"
+        android:textColor="@color/light_blue_WN"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnPlay" />
+
+    <TextView
+        android:id="@+id/timeCountdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="175dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textSize="60sp"
+        android:fontFamily="@font/roboto"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="00:10:00"
+        android:textColor="@color/white"/>
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnPause"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/roundedbutton"
+        android:drawableBottom="@drawable/pause"
+        android:drawableTint="@color/white"
+        android:backgroundTint="@color/teal"
+        android:padding="12dp"
+        app:layout_constraintStart_toEndOf="@+id/btnPlay"
+        app:layout_constraintTop_toBottomOf="@+id/progressCountdown"
+        android:layout_marginLeft="8dp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnPlay"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/roundedbutton"
+        android:onClick="startTimeCounter"
+        android:drawableBottom="@drawable/play"
+        android:drawableTint="@color/white"
+        android:paddingBottom="12dp"
+        android:backgroundTint="@color/teal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressCountdown" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnStop"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/roundedbutton"
+        android:drawableBottom="@drawable/stop"
+        android:drawableTint="@color/white"
+        android:backgroundTint="@color/teal"
+        android:paddingBottom="12dp"
+        app:layout_constraintEnd_toStartOf="@+id/btnPlay"
+        app:layout_constraintTop_toBottomOf="@+id/progressCountdown"
+        android:layout_marginRight="8dp"/>
+
+
+
+    <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+        android:id="@+id/progressCountdown"
+        style="@style/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="45dp"
+        android:minWidth="340dp"
+        android:minHeight="340dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:progressTint="@color/progressBar"
+       />
+
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/playedWorkoutName">
+
+        <LinearLayout
+            android:id="@+id/ll_exercisesNext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="150dp"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
+
+
+
+    <!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:id="@+id/rv_nextExercises"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="0dp"-->
+<!--            android:nestedScrollingEnabled="false"-->
+<!--            android:overScrollMode="never"-->
+<!--            android:paddingTop="10dp"-->
+<!--            android:paddingBottom="15dp"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/btnPlay" />-->
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
