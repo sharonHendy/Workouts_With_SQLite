@@ -5,10 +5,25 @@
       <map>
         <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/drawable-v24/add.xml" value="0.3685185185185185" />
         <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/font/roboto.xml" value="0.3685185185185185" />
-        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/activity_main.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/activity_main.xml" value="0.2" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/clear_history_dialog.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/create_combo_dialog.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/delete_dialog.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/exercise_details.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/field.xml" value="0.23854166666666668" />
         <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/fragment_charts.xml" value="0.1" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/fragment_create.xml" value="0.23854166666666668" />
         <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/fragment_my_workouts.xml" value="0.23854166666666668" />
         <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/new_workout.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/next_workout_name.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/play_workout.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/rv_workouts.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/stop_dialog.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/time_dialog.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/workout.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/workout_details.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/workout_exercises.xml" value="0.23854166666666668" />
+        <entry key="..\:/Users/sharo/AndroidStudioProjects/Workouts2/app/src/main/res/layout/workout_selected_for_combo.xml" value="0.25416666666666665" />
       </map>
     </option>
   </component>

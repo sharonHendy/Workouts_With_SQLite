@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_margin="20dp"
-    android:id="@+id/workoutView">
+    android:id="@+id/workoutView"
+    android:layoutDirection="ltr">
 
     <View
         android:layout_width="match_parent"

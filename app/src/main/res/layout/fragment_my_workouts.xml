@@ -7,7 +7,9 @@
     tools:context=".MyWorkoutsFragment"
     android:background="@color/grey"
     android:id="@+id/frg_myWorkouts"
-    android:tag="MY_WORKOUTS_FRAGMENT">
+    android:tag="MY_WORKOUTS_FRAGMENT"
+    android:layoutDirection="ltr">
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

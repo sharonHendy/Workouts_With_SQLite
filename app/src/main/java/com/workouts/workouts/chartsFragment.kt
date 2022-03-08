@@ -87,6 +87,9 @@ class chartsFragment : Fragment() {
 
     }
 
+    /**
+     * clears the charts data.
+     */
     fun clearHistory(){
         val sharedPreferences: SharedPreferences =
             requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
@@ -107,7 +110,9 @@ class chartsFragment : Fragment() {
         setPieChartValues()
     }
 
-    //opens delete dialog
+    /**
+     * opens delete dialog, clears history if the user chooses to.
+     */
     fun showDelHistoryDialog(){
         val dialog = MaterialDialog(requireContext())
             .customView(R.layout.clear_history_dialog)

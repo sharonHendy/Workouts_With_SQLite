@@ -1,4 +1,4 @@
-package com.workouts.workouts
+package com.workouts.objects
 
 data class Workout(var name: String){
 
@@ -32,7 +32,7 @@ data class Workout(var name: String){
     }
 
     /**
-     * gets a string representing time ,returns the time in millis.
+     * gets a string representing time (XX:XX - minutes:seconds),returns the time in millis.
      */
     fun getTimeInMillis(time : String): Long{
         val minutesStr : String = time.substring(0,2)
@@ -82,7 +82,13 @@ data class Workout(var name: String){
             totalHours += 1
             totalMinutes = totalMinutes % 60
         }
-        totalTime = ""+totalHours +":"+ totalMinutes +":"+ totalSeconds
+        totalTime = ""+padd(totalHours) +":"+ padd(totalMinutes) +":"+ padd(totalSeconds)
+    }
+
+    private fun padd(time :Int) : String{
+        if(time / 10 == 0)
+            return "0" + time
+        return "" + time
     }
 
     /**

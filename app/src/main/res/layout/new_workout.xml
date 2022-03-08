@@ -8,6 +8,7 @@
     app:cardElevation="1dp"
     android:backgroundTint="@color/grey3"
     android:id="@+id/workoutView"
+    android:layoutDirection="ltr"
     >
 
     <androidx.constraintlayout.widget.ConstraintLayout

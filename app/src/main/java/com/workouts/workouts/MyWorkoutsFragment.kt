@@ -21,6 +21,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.gson.Gson
+import com.workouts.objects.Combo
+import com.workouts.objects.Workout
 import kotlinx.android.synthetic.main.fragment_my_workouts.*
 
 
@@ -44,7 +46,7 @@ class MyWorkoutsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //sets listener for favorite button, show only favorite com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts
+        //sets listener for favorite button, show only favorite workouts
         btnFavorites.setOnClickListener {
             favClickedOn = !favClickedOn
             if(comboClickedOn){ //closes create combo mode if it was on without animation
@@ -55,7 +57,7 @@ class MyWorkoutsFragment : Fragment() {
             showOnlyFav()
         }
 
-        //swiches to create combo mode
+        //switch to create combo mode
         btnCombo.setOnClickListener {
             if(comboClickedOn){
                 close_createCombo()
@@ -83,7 +85,10 @@ class MyWorkoutsFragment : Fragment() {
 //        startActivity(Intent.createChooser(intent, "Choose"))
 //    }
 
-    //close create combo mode
+    /**
+     * close create combo mode
+     * @param false for closing without animation
+     */
     fun close_createCombo(withAnim : Boolean = true) {
         comboClickedOn = false
         newCombo = null
@@ -99,7 +104,9 @@ class MyWorkoutsFragment : Fragment() {
         }
     }
 
-    //switches select buttons to favorite button with animation
+    /**
+     * switches select buttons to favorite button with animation
+     */
     fun animCloseCreateCombo(){
         //val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
         for (item in ll_MyWorkouts){
@@ -128,7 +135,9 @@ class MyWorkoutsFragment : Fragment() {
         }
     }
 
-    //switches create button mode
+    /**
+     * switches create button mode
+     */
     private fun changeBtnCreateAnimation(text : String, icon : Int){
         val anim = AlphaAnimation(1.0f, 0.5f)
         anim.duration = 300
@@ -146,7 +155,9 @@ class MyWorkoutsFragment : Fragment() {
         btnCreate.startAnimation(anim)
     }
 
-    //swiches to create combo mode
+    /**
+     * swiches to create combo mode
+     */
     fun createCombo(){
 
         comboClickedOn = true
@@ -184,7 +195,7 @@ class MyWorkoutsFragment : Fragment() {
             }
 
             btnCreate.setOnClickListener{ //opens create combo dialog
-                if (newCombo == null || newCombo!!.workouts.size == 0){ //if no com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts selected
+                if (newCombo == null || newCombo!!.workouts.size == 0){ //if no workouts selected
                     Toast.makeText(context,"please select at least one workout",Toast.LENGTH_SHORT).show()
                 }else{
                     saveCombo()
@@ -193,11 +204,13 @@ class MyWorkoutsFragment : Fragment() {
         }
     }
 
-    //adds selected workout to combo and modifies the position
+    /**
+     * adds selected workout to combo and modifies the position
+     */
     fun addToCombo(item : View){
         //closeWorkoutDetails(workoutWithDetailsOpen,viewWithDetailsOpen) //closes details if open
 
-        //loads the list of com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts
+        //loads the list of workouts
         val listOfWorkouts : HashSet<Workout> = if(favClickedOn){
             getListOfFavoriteWorkouts(requireActivity())
         }else{
@@ -228,14 +241,16 @@ class MyWorkoutsFragment : Fragment() {
         }
     }
 
-    //opens start create combo dialog
+    /**
+     * opens start create combo dialog
+     */
     fun saveCombo(){
         if(newCombo!=null){
             val dialog = MaterialDialog(requireContext())
                 .customView(R.layout.create_combo_dialog)
 
             val ll_selectedWorkouts = dialog.findViewById<LinearLayout>(R.id.ll_selectedWorkouts)
-            //inflates selected com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts views
+            //inflates selected workouts views
             for(workout in newCombo!!.workouts){
                 val inflater =
                     requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -268,7 +283,9 @@ class MyWorkoutsFragment : Fragment() {
         }
     }
 
-    //loads favorites only
+    /**
+     * loads favorites only
+     */
     fun showOnlyFav(){
         if(favClickedOn){
             btnFavorites.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.favorite)
@@ -280,7 +297,9 @@ class MyWorkoutsFragment : Fragment() {
 
     }
 
-    //loads the com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts from shared prefs and opens listeners
+    /**
+     * loads the workouts from shared prefs and opens listeners
+     */
      fun update(favOnly : Boolean = false){
 
         val listOfWorkouts : HashSet<Workout>
@@ -298,7 +317,7 @@ class MyWorkoutsFragment : Fragment() {
 //        rv_MyWorkouts.adapter = workoutAdapter
 //        rv_MyWorkouts.layoutManager = LinearLayoutManager(requireContext())
 
-        //adds views with saved com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts' details
+        //adds views with saved workouts details
         for (workout in listOfWorkouts){
             if((favOnly and workout.isFavorite) or !favOnly) {
                 val inflater =
@@ -357,7 +376,9 @@ class MyWorkoutsFragment : Fragment() {
 //        }
     }
 
-    //opens create fragment
+    /**
+     * opens create fragment
+     */
     fun createNewWorkout(){
         val fragment = CreateFragment()
         val fragmentManager = parentFragmentManager
@@ -377,7 +398,7 @@ class MyWorkoutsFragment : Fragment() {
         startActivity(intent)
     }
 
-    //opens edit fragment and send the index of the workout in the list
+    //opens edit fragment and sends the index of the workout in the list
     fun editWorkout(workout: Workout){
 
             val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
@@ -396,13 +417,11 @@ class MyWorkoutsFragment : Fragment() {
             fragmentTransaction.replace(R.id.frameLayout, fragment)
             fragmentTransaction.addToBackStack(null)
             fragmentTransaction.commit()
-
-
-
     }
 
-
-    //opens workout details when clicking on the workout name
+    /**
+     * opens workout details when clicking on the workout name
+     */
     fun openWorkoutDetails(workout: Workout, rowView: View){
        // val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
 

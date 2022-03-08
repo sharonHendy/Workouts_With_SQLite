@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.gson.Gson
+import com.workouts.objects.Workout
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
 import java.text.DecimalFormat
 import java.text.NumberFormat

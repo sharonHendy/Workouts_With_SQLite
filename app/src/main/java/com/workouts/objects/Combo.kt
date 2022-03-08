@@ -1,4 +1,4 @@
-package com.workouts.workouts
+package com.workouts.objects
 
 data class Combo(var name : String) {
 

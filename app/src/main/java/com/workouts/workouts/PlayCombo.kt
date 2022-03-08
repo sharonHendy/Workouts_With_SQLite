@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.gson.Gson
+import com.workouts.objects.Combo
 import kotlinx.android.synthetic.main.play_workout.*
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
 

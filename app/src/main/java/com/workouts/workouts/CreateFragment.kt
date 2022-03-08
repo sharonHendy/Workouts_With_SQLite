@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.gson.Gson
+import com.workouts.objects.Workout
 import kotlinx.android.synthetic.main.fragment_create.*
 
 
@@ -39,7 +40,7 @@ class CreateFragment : Fragment() {
         val bundle = this.arguments
         if(bundle != null){
 
-            //sets the workout info to edi
+            //sets the workout info to edit
             val index = bundle.getInt("index",0)
             favOnlyPressed = bundle.getBoolean("favOnlyPressed", false)
             if(favOnlyPressed){
@@ -107,8 +108,9 @@ class CreateFragment : Fragment() {
     }
 
 
-
-    //deletes the workout from memory
+    /**
+     * deletes the workout from memory
+     */
     fun deletedWorkout(workout: Workout){
 
         val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
@@ -140,7 +142,9 @@ class CreateFragment : Fragment() {
 
     }
 
-    //opens delete dialog
+    /**
+     * opens delete dialog
+     */
     fun showDelDialog(){
         val dialog = MaterialDialog(requireContext())
             .customView(R.layout.delete_dialog)
@@ -156,7 +160,9 @@ class CreateFragment : Fragment() {
         dialog.show()
     }
 
-    //goes back to myWorkouts, refreshes myWorkouts only if save button has been pressed
+    /**
+     * goes back to myWorkouts, refreshes myWorkouts only if save button has been pressed
+     */
     fun cancel(){
         if (changed){
             val fragment = parentFragmentManager.findFragmentByTag("f0") //default fragment tag
@@ -165,6 +171,10 @@ class CreateFragment : Fragment() {
         activity?.onBackPressed()
     }
 
+    /**
+     * sets auto complete for exercises name fields.
+     * @param index of the exercise view
+     */
     fun setAutoComplete(i : Int){
         val ll_fields = requireView().findViewById<LinearLayout>(R.id.ll_fields)
         val exercises : Array<String> = getListOfExercises(requireActivity()).toTypedArray()
@@ -174,12 +184,19 @@ class CreateFragment : Fragment() {
         autoTextView.threshold = 1
     }
 
+    /**
+     * removes exercise's view.
+     * @param index of the exercise view
+     */
     fun deleteField(index: Int) {
         val ll_fields = requireView().findViewById<LinearLayout>(R.id.ll_fields)
         ll_fields.removeView(ll_fields.getChildAt(index))
     }
 
-    //adds field to enter another exercise
+    /**
+     * adds field to enter another exercise.
+     * @return new exercise view with buttons set with listeners
+     */
     fun onAddField() : View {
         val rowView: View = LayoutInflater.from(context).inflate(R.layout.field, null)
         val ll_fields = requireView().findViewById<LinearLayout>(R.id.ll_fields)
@@ -191,8 +208,10 @@ class CreateFragment : Fragment() {
         return rowView
     }
 
-    //opens listeners for time buttons
-    // i is the number of the field
+    /**
+     * opens listeners for time button.
+     * @param index of the field
+     */
     fun openBtnTimeListener(i: Int) {
         val ll_fields = requireView().findViewById<LinearLayout>(R.id.ll_fields)
         val ll_singleField = ll_fields.getChildAt(i)
@@ -208,8 +227,10 @@ class CreateFragment : Fragment() {
 
     }
 
-    //opens listener for delete button
-    // i is the number of the field
+    /**
+     * opens listeners for delete button.
+     * @param index of the field
+     */
     fun openBtnDeleteListener(i: Int) {
         val ll_fields = requireView().findViewById<LinearLayout>(R.id.ll_fields)
         val ll_singleField = ll_fields.getChildAt(i)
@@ -224,7 +245,9 @@ class CreateFragment : Fragment() {
         }
     }
 
-    //opens and sets the time for the exercises
+    /**
+     * opens and sets the time for the exercises
+     */
     fun showTimeDialog(i: Int) {
         val dialog = MaterialDialog(requireContext())
             .customView(R.layout.time_dialog)
@@ -239,7 +262,7 @@ class CreateFragment : Fragment() {
 
         val btnSetTime: Button = dialog.findViewById(R.id.btnSetTime)
         btnSetTime.setOnClickListener {
-
+            //displays the time chosen on the time button
             val minutes: Int = minute_picker.value
             val seconds: Int = second_picker.value
 
@@ -248,7 +271,7 @@ class CreateFragment : Fragment() {
             if (ll_singleField is ConstraintLayout) {
                 val btnTime = ll_singleField.findViewById<Button>(R.id.btnTime)
                 if (btnTime is Button) {
-                    btnTime.text = "" + minutes + " : " + seconds
+                    btnTime.text = padd(minutes) + " : " + padd(seconds)
 
                 }
             }
@@ -258,8 +281,15 @@ class CreateFragment : Fragment() {
         dialog.show()
     }
 
+    private fun padd(time :Int) : String{
+        if(time / 10 == 0)
+            return "0" + time
+        return "" + time
+    }
 
-    //saves the workout detail provided by the user
+    /**
+     * saves the workout detail provided by the user.
+     */
     fun saveData(){
 
         if(checkFields()){
@@ -274,20 +304,18 @@ class CreateFragment : Fragment() {
             val newWorkoutName: String = requireView().findViewById<EditText>(R.id.et_NewWorkoutName).text.toString()
             var newWorkout : Workout = Workout(newWorkoutName)
 
-            if(workout != null){ //removes the old workout and is name from shared prefs
+            if(workout != null){ //(means its an edit call) removes the old workout and its name from shared prefs
                 newWorkout.isFavorite = workout!!.isFavorite
                 listOfFavoriteWorkouts.remove(workout)
                 listOfWorkoutsNames.remove(workout!!.name)
                 listOfWorkouts.remove(workout)
             }
 
-            if(newWorkout.isFavorite){ // adds to favorite com.com.com.workouts.workouts.com.workouts.workouts.com.com.workouts.workouts.com.workouts.workouts list
+            if(newWorkout.isFavorite){ // adds to favorite workouts list
                 listOfFavoriteWorkouts.add(newWorkout)
             }
 
-            //newWorkout = Workout(newWorkoutName)
             listOfWorkoutsNames.add(newWorkoutName)
-
 
             //adds the exercises to the workout
             val listOfExercises = getListOfExercises(requireActivity())
@@ -298,7 +326,7 @@ class CreateFragment : Fragment() {
                     val name: String = field.findViewById<EditText>(R.id.exerciseName).text.toString()
                     val time: String = field.findViewById<Button>(R.id.btnTime).text.toString()
                     newWorkout.addExercise(name, time)
-                    listOfExercises.add(name)
+                    listOfExercises.add(name) //for auto complete
                     j++
                 }
             }
@@ -321,14 +349,16 @@ class CreateFragment : Fragment() {
         }
     }
 
-    //checks all fields are filled
+    /**
+     * checks all fields are filled
+     */
     fun checkFields() : Boolean{
         var output = true
         if(requireView().findViewById<EditText>(R.id.et_NewWorkoutName).text.toString().equals("")){
             output = false
         }else{
             val ll_fields: LinearLayout = requireView().findViewById(R.id.ll_fields)
-            var j = 0
+            //var j = 0
             if (ll_fields.childCount == 0){
                 Toast.makeText(requireContext(), "workout has to have at least one exercise", Toast.LENGTH_SHORT).show()
                 return false
@@ -339,10 +369,12 @@ class CreateFragment : Fragment() {
                     val time: String = field.findViewById<Button>(R.id.btnTime).text.toString()
                     if (name.equals("")){
                         output = false
+                        break
                     }
                     if(time.equals("0 : 0")) {
                         output = false
-                        j++
+                        break
+                        //j++
                     }
                 }
             }

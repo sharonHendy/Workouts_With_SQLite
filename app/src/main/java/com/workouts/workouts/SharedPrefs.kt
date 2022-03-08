@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
+import com.workouts.objects.Workout
 
 fun getListOfFavoriteWorkouts(activity : Activity): HashSet<Workout> {
     val sharedPreferences: SharedPreferences =

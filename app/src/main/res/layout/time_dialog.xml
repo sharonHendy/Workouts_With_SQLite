@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="8dp"
-    android:background="#D2292626">
+    android:background="#D2292626"
+    android:layoutDirection="ltr">
 
     <TextView
         android:layout_width="wrap_content"
@@ -41,12 +42,12 @@
             <NumberPicker
                 android:id="@+id/minute_picker"
                 android:layout_width="wrap_content"
-                android:layout_height="130dp"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:layout_marginEnd="8dp"
+                android:theme="@style/general"
                 app:layout_constraintEnd_toStartOf="@+id/textView"
-                app:layout_constraintTop_toTopOf="parent"
-                android:theme="@style/general"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/textView"
