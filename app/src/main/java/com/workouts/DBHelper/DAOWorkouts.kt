@@ -10,18 +10,21 @@ import java.lang.Exception
 import java.lang.IllegalArgumentException
 
 class DAOWorkouts(db : DBHelper) {
-    val TABLE_NAME = "Workouts"
 
-    val COL_ID = "Id"
-    val COL_NAME = "Name"
-    val COL_TOTAL_SEC = "TotalSeconds"
-    val COL_TOTAL_MIN = "TotalMinutes"
-    val COL_TOTAL_HOU = "TotalHours"
-    val COL_IS_FAVORITE = "IsFavorite"
-    val COL_TIMES_PLAYED = "TimePlayed"
-    val COL_EXERCISES = "Exercises"
+   // companion object{
+        var TABLE_NAME = "Workouts"
 
-    private var currId = 0
+        var COL_ID = "Id"
+        var COL_NAME = "Name"
+        var COL_TOTAL_SEC = "TotalSeconds"
+        var COL_TOTAL_MIN = "TotalMinutes"
+        var COL_TOTAL_HOU = "TotalHours"
+        var COL_IS_FAVORITE = "IsFavorite"
+        var COL_TIMES_PLAYED = "TimePlayed"
+        var COL_EXERCISES = "Exercises"
+   // }
+
+    //private var currId = 0
     private val DB : DBHelper = db
 
     /**
@@ -36,14 +39,14 @@ class DAOWorkouts(db : DBHelper) {
             do{
                 var workout : Workout? = null
                 try { //throws exception if one of the columns doesn't exist (not supposed to happen)
-                    workout = Workout()
-                    workout.name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+                    var name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+                    workout = Workout(name)
                     workout.totalSeconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_SEC))
                     workout.totalMinutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_MIN))
                     workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
                     workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
                     workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
-                    workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES))
+                    workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
                 }catch (e : IllegalArgumentException){
                     e.printStackTrace()
                 }
@@ -66,14 +69,14 @@ class DAOWorkouts(db : DBHelper) {
             do{
                 var workout : Workout? = null
                 try { //throws exception if one of the columns doesn't exist
-                    workout = Workout()
-                    workout.name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+                    var name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+                    workout = Workout(name)
                     workout.totalSeconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_SEC))
                     workout.totalMinutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_MIN))
                     workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
                     workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
                     workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
-                    workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES))
+                    workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
                 }catch (e : IllegalArgumentException){
                     e.printStackTrace()
                 }
@@ -103,25 +106,25 @@ class DAOWorkouts(db : DBHelper) {
     }
 
     /**
-     * adds a new workout to the table
+     * adds a new workout to the table.
      * @return false if unsuccessful
      */
-    fun addWorkout(workout: Workout) : Boolean{
+    fun addWorkout( workout: Workout) : Boolean{
         val values = ContentValues()
-        values.put(COL_ID, currId)
+        //values.put(COL_ID, currId)
         values.put(COL_NAME, workout.name)
         values.put(COL_TOTAL_SEC, workout.totalSeconds)
         values.put(COL_TOTAL_MIN, workout.totalMinutes)
         values.put(COL_TOTAL_HOU, workout.totalHours)
         values.put(COL_IS_FAVORITE, workout.isFavorite)
         values.put(COL_TIMES_PLAYED, workout.timePlayed)
-        values.put(COL_EXERCISES, workout.exercises)
+        values.put(COL_EXERCISES, workout.exercises.joinToString(","))
 
         val db : SQLiteDatabase = DB.writableDatabase
         var isSuccessful : Long = db.insert(TABLE_NAME, null, values)
         db.close()
-        if(isSuccessful != -1L)
-            currId += 1
+//        if(isSuccessful != -1L)
+//            currId += 1
         return isSuccessful != -1L
 
     }
@@ -129,11 +132,11 @@ class DAOWorkouts(db : DBHelper) {
     /**
      * increments the workouts time played column by 1
      */
-    fun addToTimePlayed(workoutName : String){
+    fun addToTimePlayed( workoutName : String){
         val db : SQLiteDatabase = DB.writableDatabase
         val updateQuery = "UPDATE $TABLE_NAME SET $COL_TIMES_PLAYED = $COL_TIMES_PLAYED + 1 " +
                 "WHERE $COL_NAME = ?"
-        db.execSQL(updateQuery, arrayOf(workoutName)) //todo ????
+        db.execSQL(updateQuery, arrayOf(workoutName))
         db.close()
     }
 
@@ -141,7 +144,7 @@ class DAOWorkouts(db : DBHelper) {
      * adds the exercises id to the list of exercises in the exercises column of the given workout,
      * returns 0 if unsuccessful.
      */
-    fun addExerciseToWorkout(workoutName: String, exerciseId : Int) : Int{
+    fun addExerciseToWorkout( workoutName: String, exerciseId : Int) : Int{
         val db : SQLiteDatabase = DB.writableDatabase
         var currExercises : String? = getExercisesOfWorkoutStr(workoutName)
         if (currExercises == null)
@@ -155,7 +158,7 @@ class DAOWorkouts(db : DBHelper) {
     /**
      * returns the value of the exercises column of the workout, or null if the workout doesn't exists.
      */
-    fun getExercisesOfWorkoutStr(workoutName: String) : String?{
+    fun getExercisesOfWorkoutStr( workoutName: String) : String?{
         var exercisesStr : String? = null
         val selectQuery = "SELECT $COL_EXERCISES FROM $TABLE_NAME WHERE $COL_NAME = ?"
         val db : SQLiteDatabase = DB.writableDatabase
@@ -170,7 +173,7 @@ class DAOWorkouts(db : DBHelper) {
     /**
      * returns a list of total seconds, minutes, hours of the given workout.
      */
-    fun getSecMinHouOfWorkout(workoutName: String) : MutableList<Int>{
+    fun getSecMinHouOfWorkout( workoutName: String) : MutableList<Int>{
         var totalSec : Int = -1
         var totalMin : Int = -1
         var totalHou : Int = -1
@@ -193,8 +196,8 @@ class DAOWorkouts(db : DBHelper) {
      * @param timeToAdd in format MIN:SEC
      * @return false if unsuccessful
      */
-    fun addToTotalTimeOfWorkout(workoutName: String, timeToAdd : String) : Boolean{
-        var lstOfTime : MutableList<Int> = getSecMinHouOfWorkout(workoutName)
+    fun addToTotalTimeOfWorkout( workoutName: String, timeToAdd : String) : Boolean{
+        var lstOfTime : MutableList<Int> = getSecMinHouOfWorkout( workoutName)
         if(lstOfTime[0] == -1 || lstOfTime[1] == -1 || lstOfTime[2] == -1)
             return false
 
@@ -226,8 +229,8 @@ class DAOWorkouts(db : DBHelper) {
     /**
      * returns the total time of the given workout in format - XX:XX:XX
      */
-    fun getTotalTimeOfWorkout(workoutName: String) : String?{
-        var lstOfTime : MutableList<Int> = getSecMinHouOfWorkout(workoutName)
+    fun getTotalTimeOfWorkout( workoutName: String) : String?{
+        var lstOfTime : MutableList<Int> = getSecMinHouOfWorkout( workoutName)
         if(lstOfTime[0] == -1 || lstOfTime[1] == -1 || lstOfTime[2] == -1)
             return null
         return ""+padd(lstOfTime[2]) +":"+ padd(lstOfTime[1]) +":"+ padd(lstOfTime[0])
@@ -278,7 +281,7 @@ class DAOWorkouts(db : DBHelper) {
      * deletes the workout from the DB. for DBHelper use only.
      * @return true if successful, false otherwise.
      */
-    fun deleteWorkout(workoutName: String) : Boolean{
+    fun deleteWorkout( workoutName: String) : Boolean{
         val db: SQLiteDatabase = DB.writableDatabase
         var isSuccessful = db.delete(TABLE_NAME, "$COL_NAME =?" , arrayOf(workoutName))
         db.close()
@@ -296,6 +299,93 @@ class DAOWorkouts(db : DBHelper) {
         var isSuccessful = db.update(TABLE_NAME, values, "$COL_NAME = ?", arrayOf(workoutName))
         db.close()
         return isSuccessful != 0
+    }
+
+    /**
+     * gets the workout with the given name, or null if it doesn't exists.
+     */
+    fun getWorkout(workoutName: String): Workout?{
+        var workout : Workout? = null
+        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_NAME = ?"
+        val db : SQLiteDatabase = DB.writableDatabase
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(workoutName)) //todo??
+        if (cursor.moveToFirst()){
+            workout = Workout(workoutName)
+            workout.totalSeconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_SEC))
+            workout.totalMinutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_MIN))
+            workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
+            workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
+            workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
+            workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
+        }
+        db.close()
+        return workout
+    }
+
+    /**
+     * gets the workout with the given id, or null if it doesn't exists.
+     */
+    fun getWorkout(id: Int): Workout?{
+        var workout : Workout? = null
+        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_ID = ?"
+        val db : SQLiteDatabase = DB.writableDatabase
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf("" + id)) //todo??
+        if (cursor.moveToFirst()){
+            workout = Workout(cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME)))
+            workout.totalSeconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_SEC))
+            workout.totalMinutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_MIN))
+            workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
+            workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
+            workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
+            workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
+        }
+        db.close()
+        return workout
+    }
+
+    /**
+     * gets the id of the workout with the given name, or -1 if it doesn't exists.
+     */
+    fun getWorkoutId(workoutName: String): Int{
+        var workoutId : Int = -1
+        val selectQuery = "SELECT $COL_ID  FROM $TABLE_NAME WHERE $COL_NAME = ?"
+        val db : SQLiteDatabase = DB.writableDatabase
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(workoutName)) //todo??
+        if (cursor.moveToFirst()){
+            workoutId = cursor.getInt(cursor.getColumnIndexOrThrow(COL_ID))
+        }
+        db.close()
+        return workoutId
+    }
+
+    /**
+     * gets the name of the workout with the given id, or -1 if it doesn't exists.
+     */
+    fun getWorkoutName(workoutId: Int): String?{
+        var workoutName : String? = null
+        val selectQuery = "SELECT $COL_NAME  FROM $TABLE_NAME WHERE $COL_ID = ?"
+        val db : SQLiteDatabase = DB.writableDatabase
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(""+workoutId)) //todo??
+        if (cursor.moveToFirst()){
+            workoutName = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+        }
+        db.close()
+        return workoutName
+    }
+
+    /**
+     * returns true if the workout is favorite, false otherwise.
+     */
+    fun getWorkoutIsFavorite(workoutName: String): Boolean{
+        var isFav : Boolean = false
+        val selectQuery = "SELECT $COL_IS_FAVORITE  FROM $TABLE_NAME WHERE $COL_NAME = ?"
+        val db : SQLiteDatabase = DB.writableDatabase
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(""+workoutName))
+        if (cursor.moveToFirst()){
+            isFav = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
+        }
+        db.close()
+        return isFav
     }
 
 }

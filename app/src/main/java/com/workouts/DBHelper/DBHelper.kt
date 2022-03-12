@@ -3,15 +3,29 @@ package com.workouts.DBHelper
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.workouts.DTOs.Combo
 import com.workouts.DTOs.Exercise
 import com.workouts.DTOs.WeekPerformance
+import com.workouts.DTOs.Workout
 
 class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, null, DATABASE_VER) {
+    var WORKOUTS :DAOWorkouts = DAOWorkouts(this)
+    var EXERCISES : DAOExercises = DAOExercises(this)
+    var WEEK_PERFORMANCES : DAOWeekPerformances = DAOWeekPerformances(this)
+    var COMBOS : DAOCombos = DAOCombos(this)
 
     companion object{
         var DATABASE_NAME = "Workouts.db"
         var DATABASE_VER = 1
+//        var WORKOUT_CURR_ID = 0
+//        var EXERCISE_CURR_ID = 0
+//        var COMBO_CURR_ID = 0
+//        var NUM_OF_WP = 0
 
+//        var WORKOUTS :DAOWorkouts = DAOWorkouts()
+//        var EXERCISES : DAOExercises = DAOExercises()
+//        var WEEK_PERFORMANCES : DAOWeekPerformances = DAOWeekPerformances()
+//        var COMBOS : DAOCombos = DAOCombos()
         //workouts table
 //        private val WORKOUT_TABLE_NAME = "Workouts"
 //        private val COL_WORKOUT_ID = "Id"
@@ -39,17 +53,27 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
 //        private val COL_WEEK_PERFORMANCE_THU = "Thu"
 //        private val COL_WEEK_PERFORMANCE_FRI = "Fri"
 //        private val COL_WEEK_PERFORMANCE_SAT = "Sat"
+
     }
 
-    val WORKOUTS = DAOWorkouts(this)
-    val EXERCISES = DAOExercises(this)
-    val WEEK_PERFORMANCES = DAOWeekPerformances(this)
 
+
+//    override fun onOpen(db: SQLiteDatabase?) {
+//        super.onOpen(db)
+//        db!!.execSQL("DROP TABLE IF EXISTS ${WORKOUTS.TABLE_NAME}")
+//        db.execSQL("DROP TABLE IF EXISTS ${EXERCISES.TABLE_NAME}")
+//        db.execSQL("DROP TABLE IF EXISTS ${WEEK_PERFORMANCES.TABLE_NAME}")
+//        db.execSQL("DROP TABLE IF EXISTS ${COMBOS.TABLE_NAME}")
+//        onCreate(db)
+//    }
     //p0 == db
+
+
     override fun onCreate(p0: SQLiteDatabase?) {
+
         val CREATE_TABLE_WORKOUTS_QUERY : String = ("CREATE TABLE ${WORKOUTS.TABLE_NAME} " +
                 "(${WORKOUTS.COL_ID} INTEGER PRIMARY KEY," +
-                "${WORKOUTS.COL_NAME} TEXT PRIMARY KEY," +
+                "${WORKOUTS.COL_NAME} TEXT," +
                 "${WORKOUTS.COL_TOTAL_SEC} INTEGER," +
                 "${WORKOUTS.COL_TOTAL_MIN} INTEGER," +
                 "${WORKOUTS.COL_TOTAL_HOU} INTEGER," +
@@ -60,7 +84,7 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
         val CREATE_TABLE_EXERCISES_QUERY : String = ("CREATE TABLE ${EXERCISES.TABLE_NAME} " +
                 "(${EXERCISES.COL_ID} INTEGER PRIMARY KEY," +
                 "${EXERCISES.COL_NAME} TEXT," +
-                "${EXERCISES.COL_SEC} INTEGER" +
+                "${EXERCISES.COL_SEC} INTEGER," +
                 "${EXERCISES.COL_MIN} INTEGER)"
                 )
         val CREATE_TABLE_WEEK_PER_QUERY : String = ("CREATE TABLE ${WEEK_PERFORMANCES.TABLE_NAME} " +
@@ -73,10 +97,20 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
                 "${WEEK_PERFORMANCES.COL_FRI} FLOAT," +
                 "${WEEK_PERFORMANCES.COL_SAT} FLOAT)"
                 )
+        val CREATE_TABLE_COMBOS_QUERY : String = ("CREATE TABLE ${COMBOS.TABLE_NAME} " +
+                "(${COMBOS.COL_ID} INTEGER PRIMARY KEY," +
+                "${COMBOS.COL_NAME} TEXT," + //TODO PK?
+                "${COMBOS.COL_WORKOUTS} TEXT)"
+                )
 
         p0!!.execSQL(CREATE_TABLE_WORKOUTS_QUERY)
         p0.execSQL(CREATE_TABLE_EXERCISES_QUERY)
         p0.execSQL(CREATE_TABLE_WEEK_PER_QUERY)
+        p0.execSQL(CREATE_TABLE_COMBOS_QUERY)
+        //todo add to week performance 4 rows
+//        for (i in 1..4) {
+//            WEEK_PERFORMANCES.addWeekPerformance()
+//        }
     }
 
     //p0 == db
@@ -86,6 +120,7 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
         p0!!.execSQL("DROP TABLE IF EXISTS ${WORKOUTS.TABLE_NAME}")
         p0.execSQL("DROP TABLE IF EXISTS ${EXERCISES.TABLE_NAME}")
         p0.execSQL("DROP TABLE IF EXISTS ${WEEK_PERFORMANCES.TABLE_NAME}")
+        p0.execSQL("DROP TABLE IF EXISTS ${COMBOS.TABLE_NAME}")
         onCreate(p0)
     }
 
@@ -93,13 +128,13 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
      * returns a hash set of the workouts exercises.
      * @return null if workout doesn't exists.
      */
-    fun getExercisesOfWorkout(workoutName: String): HashSet<Exercise>?{
-        var exercises = HashSet<Exercise>()
+    fun getExercisesOfWorkout(workoutName: String): MutableList<Exercise>?{
+        var exercises = mutableListOf<Exercise>()
         var exercisesStr : String? = WORKOUTS.getExercisesOfWorkoutStr(workoutName)
         if (exercisesStr == null)
             return null
         var lstOfIds : List<String> = exercisesStr.split(',')
-        for(id : String in lstOfIds){ //for each id, finds the matching exercise and adds it to the hash set
+        for(id : String in lstOfIds){ //for each id, finds the matching exercise and adds it to the List
             var exercise : Exercise? = EXERCISES.getExercise(Integer.parseInt(id.trim()))
             if(exercise == null) //todo !!
                 throw Exception("workout contains id of exercise that doesn't exists. id:" + id)
@@ -124,13 +159,84 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
         //deletes the workouts exercises
         if (isSuccessful) {
             for (id: String in lstExercises) {
-                EXERCISES.deleteExercise(Integer.parseInt(id.trim()))
+                EXERCISES.deleteExercise( Integer.parseInt(id.trim()))
             }
             return true
         }
         else
             return false
     }
+
+    /**
+     * returns a mutable list of the combos workouts, or null if the combo doesn't exists.
+     */
+    fun getWorkoutsOfCombo(comboName : String) : MutableList<Workout>?{
+        var workouts : MutableList<Workout> = mutableListOf()
+        val workoutsStr = COMBOS.getWorkoutsStrOfCombo( comboName)
+        if(workoutsStr == null) //combo doesn't exists
+            return null
+        val workoutsIds = workoutsStr.split(',')
+        for(id : String in workoutsIds){
+            val workout = WORKOUTS.getWorkout(Integer.parseInt(id.trim()))
+            workouts.add(workout!!)
+        }
+        return workouts
+    }
+
+//    /**
+//     * adds a new workout.
+//     * @return true if successful.
+//     */
+//    fun addWorkout(workout: Workout) : Boolean{
+//        if(WORKOUTS.addWorkout(this, workout, WORKOUT_CURR_ID)) {
+//            WORKOUT_CURR_ID += 1
+//            return true
+//        }
+//        return false
+//    }
+
+//    /**
+//     * adds a new exercise.
+//     * @return the id if successful. -1 otherwise.
+//     */
+//    fun addExercise(exercise: Exercise) : Int{
+//        if(EXERCISES.addExercise(this, exercise, EXERCISE_CURR_ID) != -1){
+//            EXERCISE_CURR_ID += 1
+//            return EXERCISE_CURR_ID -1
+//        }
+//        return -1
+//    }
+//
+//    /**
+//     * adds a new combo.
+//     * @return true if successful.
+//     */
+//    fun addCombo(combo: Combo) : Boolean{
+//        if(COMBOS.addCombo(this, combo, EXERCISE_CURR_ID)){
+//            COMBO_CURR_ID += 1
+//            return true
+//        }
+//        return false
+//    }
+
+//    fun addWeekPerformance(): Boolean{
+//        if(WEEK_PERFORMANCES.addWeekPerformance(this, NUM_OF_WP)){
+//            if(NUM_OF_WP < 4)
+//                NUM_OF_WP += 1
+//            return true
+//        }
+//        return false
+//    }
+
+//    fun addTimeToWeekPerformance( day : Int, time : Float){
+//        if(NUM_OF_WP == 0)
+//            addWeekPerformance()
+//        WEEK_PERFORMANCES.addTimeToWeekPerformance(this, day, time)
+//    }
+
+//    fun getAllWorkouts(): HashSet<Workout>{
+//        return WORKOUTS.getAllWorkouts(this)
+//    }
 
 
 }

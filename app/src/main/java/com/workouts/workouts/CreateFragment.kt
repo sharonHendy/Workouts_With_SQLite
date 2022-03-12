@@ -14,20 +14,24 @@ import androidx.fragment.app.Fragment
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.gson.Gson
-import com.workouts.objects.Workout
+import com.workouts.DBHelper.DBHelper
+import com.workouts.DTOs.*
 import kotlinx.android.synthetic.main.fragment_create.*
 
 
 class CreateFragment : Fragment() {
 
+    private lateinit var db : DBHelper
     private  var workout : Workout? = null
     private var changed : Boolean = false
-    private var favOnlyPressed : Boolean = false
+    private var favOnlyPressed : Boolean = false //need this when back pressed
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        db = DBHelper(requireContext())
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_create, container, false)
@@ -36,25 +40,24 @@ class CreateFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+
         //sends bundle from myWorkouts to edit a workout
         val bundle = this.arguments
         if(bundle != null){
 
             //sets the workout info to edit
-            val index = bundle.getInt("index",0)
+            //val index = bundle.getInt("index",0)
+            val workoutName : String = bundle.getString("workoutName", null)
             favOnlyPressed = bundle.getBoolean("favOnlyPressed", false)
-            if(favOnlyPressed){
-                workout = getListOfFavoriteWorkouts(requireActivity()).elementAt(index)
-            }else{
-                workout = getListOfWorkouts(requireActivity()).elementAt(index)
-            }
+            workout = db.WORKOUTS.getWorkout( workoutName)!!
 
-            view.findViewById<EditText>(R.id.et_NewWorkoutName).setText((workout as Workout).name)
+            view.findViewById<EditText>(R.id.et_NewWorkoutName).setText(workout!!.name)
             var i : Int = 0
-            for(exercise in (workout as Workout).exercisesAndTimes){
+            for(exercise in db.getExercisesOfWorkout(workout!!.name)!!){
                 val view : View = onAddField()
                 view.findViewById<EditText>(R.id.exerciseName).setText(exercise.name)
-                view.findViewById<Button>(R.id.btnTime).text = exercise.time
+                view.findViewById<Button>(R.id.btnTime).text = exercise.getTime()
                 i++
             }
 
@@ -112,34 +115,9 @@ class CreateFragment : Fragment() {
      * deletes the workout from memory
      */
     fun deletedWorkout(workout: Workout){
-
-        val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
-        listOfWorkouts.remove(workout)
-        val listOfWorkoutsNames = getListOfWorkoutsNames(requireActivity())
-        listOfWorkoutsNames.remove(workout.name)
-
-        //saves changes to shared prefs
-        val sharedPreferences: SharedPreferences =
-            requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        val jsonString1 = Gson().toJson(listOfWorkouts)
-        val jsonString2 = Gson().toJson(listOfWorkoutsNames)
-
-        editor.putString("ListOfWorkouts", jsonString1)
-        editor.putString("ListOfWorkoutsNames",jsonString2)
-
-
-        if(workout.isFavorite){
-            val listOfFavWorkout = getListOfFavoriteWorkouts(requireActivity())
-            listOfFavWorkout.remove(workout)
-            val jsonString3 = Gson().toJson(listOfFavWorkout)
-            editor.putString("ListOfFavoriteWorkouts", jsonString3)
-        }
-
-        editor.apply()
+        db.deleteWorkout(workout.name)
 
         Toast.makeText(requireContext(), "deleted workout", Toast.LENGTH_SHORT).show()
-
     }
 
     /**
@@ -177,7 +155,7 @@ class CreateFragment : Fragment() {
      */
     fun setAutoComplete(i : Int){
         val ll_fields = requireView().findViewById<LinearLayout>(R.id.ll_fields)
-        val exercises : Array<String> = getListOfExercises(requireActivity()).toTypedArray()
+        val exercises : Array<String> = db.EXERCISES.getExercisesNames().toTypedArray()
         val adapter = ArrayAdapter(requireContext(),android.R.layout.simple_list_item_1,exercises)
         val autoTextView = ll_fields.getChildAt(i).findViewById<AutoCompleteTextView>(R.id.exerciseName)
         autoTextView.setAdapter(adapter)
@@ -293,56 +271,32 @@ class CreateFragment : Fragment() {
     fun saveData(){
 
         if(checkFields()){
-            val sharedPreferences: SharedPreferences =
-                requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-            val editor: SharedPreferences.Editor = sharedPreferences.edit()
-
-            val listOfWorkouts: HashSet<Workout> = getListOfWorkouts(requireActivity())
-            val listOfFavoriteWorkouts = getListOfFavoriteWorkouts(requireActivity())
-            val listOfWorkoutsNames : HashSet<String> = getListOfWorkoutsNames(requireActivity())
 
             val newWorkoutName: String = requireView().findViewById<EditText>(R.id.et_NewWorkoutName).text.toString()
             var newWorkout : Workout = Workout(newWorkoutName)
 
             if(workout != null){ //(means its an edit call) removes the old workout and its name from shared prefs
                 newWorkout.isFavorite = workout!!.isFavorite
-                listOfFavoriteWorkouts.remove(workout)
-                listOfWorkoutsNames.remove(workout!!.name)
-                listOfWorkouts.remove(workout)
+                db.deleteWorkout(workout!!.name)
             }
-
-            if(newWorkout.isFavorite){ // adds to favorite workouts list
-                listOfFavoriteWorkouts.add(newWorkout)
-            }
-
-            listOfWorkoutsNames.add(newWorkoutName)
 
             //adds the exercises to the workout
-            val listOfExercises = getListOfExercises(requireActivity())
             val ll_fields: LinearLayout = requireView().findViewById(R.id.ll_fields)
             var j = 0
             for (field in ll_fields.children) {
                 if (field is ConstraintLayout) {
                     val name: String = field.findViewById<EditText>(R.id.exerciseName).text.toString()
                     val time: String = field.findViewById<Button>(R.id.btnTime).text.toString()
-                    newWorkout.addExercise(name, time)
-                    listOfExercises.add(name) //for auto complete
+                    val exercise :Exercise = Exercise(name, time)
+                    val exerciseId : Int = db.EXERCISES.addExercise(exercise)
+                    if(exerciseId == -1)
+                        throw Exception("tried to add exercise with id that already exists.")
+                    newWorkout.addExercise(""+ exerciseId, time)
                     j++
                 }
             }
 
-            listOfWorkouts.add(newWorkout)
-
-
-            val jsonString3 = Gson().toJson(listOfWorkoutsNames)
-            val jsonString = Gson().toJson(listOfWorkouts)
-            val jsonString2 = Gson().toJson(listOfExercises)
-            editor.putString("ListOfWorkouts", jsonString)
-            editor.putString("ListOfExercises", jsonString2)
-            editor.putString("ListOfWorkoutsNames",jsonString3)
-            val jsonStr = Gson().toJson(listOfFavoriteWorkouts)
-            editor.putString("ListOfFavoriteWorkouts",jsonStr)
-            editor.apply()
+            db.WORKOUTS.addWorkout(newWorkout)
 
             Toast.makeText(requireContext(), "saved workout", Toast.LENGTH_SHORT).show()
             cancel()

@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.workouts.DTOs.WeekPerformance
 import java.time.DayOfWeek
 
-class DAOWeekPerformances(db : DBHelper) {
+class DAOWeekPerformances(db: DBHelper) {
     val TABLE_NAME = "Week_Performances"
 
     val COL_ID = "Id"
@@ -18,21 +18,20 @@ class DAOWeekPerformances(db : DBHelper) {
     val COL_FRI = "FRI"
     val COL_SAT = "SAT"
 
-    private var currId = 1
-    private var numOfWP = 0
+    //private var currId = 1
+    //private var numOfWP = 0
     private val DB : DBHelper = db
 
     /**
-     * returns the week performance with the given id.
-     * @return null if there's no week performance with this id.
+     * returns the week performance with the given id, if there is no week performance with this id,
+     * returns week performance with 0 values.
      */
-    fun getWeekPerformance(id :Int) :WeekPerformance?{
-        var weekPer : WeekPerformance? = null
+    fun getWeekPerformance( id :Int) :WeekPerformance{
+        var weekPer : WeekPerformance = WeekPerformance()
         val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_ID = ?"
         val db: SQLiteDatabase = DB.writableDatabase
         val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(""+id))
         if(cursor.moveToFirst()){
-            weekPer = WeekPerformance()
             weekPer.SUN = cursor.getFloat(cursor.getColumnIndexOrThrow(COL_SUN))
             weekPer.MON = cursor.getFloat(cursor.getColumnIndexOrThrow(COL_MON))
             weekPer.TUS = cursor.getFloat(cursor.getColumnIndexOrThrow(COL_TUS))
@@ -49,7 +48,7 @@ class DAOWeekPerformances(db : DBHelper) {
      * deletes the week performance with this id.
      * @return true if successful, false otherwise.
      */
-    fun deleteWeekPerformance(id : Int): Boolean{
+    fun deleteWeekPerformance( id : Int): Boolean{
         val db: SQLiteDatabase = DB.writableDatabase
         val isSuccessful = db.delete(TABLE_NAME, "$COL_ID =?" , arrayOf(""+id))
         db.close()
@@ -60,7 +59,7 @@ class DAOWeekPerformances(db : DBHelper) {
      * updates the id of the week performance to be the newId.
      * @return true if successful, false otherwise.
      */
-    fun updateId(id: Int, newId:Int): Boolean{
+    fun updateId( id: Int, newId:Int): Boolean{
         val values = ContentValues()
         values.put(COL_ID, newId)
         val db: SQLiteDatabase = DB.writableDatabase
@@ -71,13 +70,13 @@ class DAOWeekPerformances(db : DBHelper) {
 
     /**
      * adds a weeks performance. if the db already stores 4 week performances, deletes the oldest one
-     * and updates the ids.
+     * and updates the ids. for DBHelper use only.
      * @return true if successful, false otherwise.
      */
     fun addWeekPerformance(): Boolean{
-        if(numOfWP == 4) {
-            deleteWeekPerformance(4) //deletes the forth week data
-        }
+        //if(numOfWP == 4) {
+            deleteWeekPerformance(4) //deletes the forth week data todo if exists?
+        //}
         for(i in 3 downTo 1){ //updates the ids of the rest of the weeks
             updateId(i, i+1)
         }
@@ -97,20 +96,19 @@ class DAOWeekPerformances(db : DBHelper) {
         val isSuccessful = db.insert(TABLE_NAME, null, values)
         db.close()
 
-        if(isSuccessful != -1L && numOfWP <4) //increase numOfWP if needed
-            numOfWP += 1
+//        if(isSuccessful != -1L && numOfWP <4) //increase numOfWP if needed
+//            numOfWP += 1
 
         return isSuccessful != -1L
     }
 
     /**
-     * adds the time to the column of the given day.
+     * adds the time to the column of the given day. for DBHelper use only.
      * if there's no week performance stored yet, adds one and adds the time to it.
+     * @param day 1..7
+     *        time to add in millis
      */
-    fun addTimeToWeekPerformance(day : Int, time : Float){
-        if(numOfWP == 0){
-            addWeekPerformance()
-        }
+    fun addTimeToWeekPerformance( day : Int, time : Float){
 
         var column : String = if(day == 1)
             COL_SUN
@@ -127,11 +125,29 @@ class DAOWeekPerformances(db : DBHelper) {
         else
             COL_SAT
 
+        //checks if there if a week performance row in the table, if not adds one.
         val db : SQLiteDatabase = DB.writableDatabase
-        val updateQuery = "UPDATE $TABLE_NAME SET ? = ? + ? " +
+        val selectQuery = "SELECT * FROM $TABLE_NAME"
+        val cursor = db.rawQuery(selectQuery, null)
+        if(!cursor.moveToFirst()){
+            cursor.close()
+            db.close()
+            addWeekPerformance()
+        }
+        val updateQuery = "UPDATE $TABLE_NAME SET $column = $column + ? " +
                 "WHERE $COL_ID = 1"
-        db.execSQL(updateQuery, arrayOf(column, column, ""+time)) //todo ????
+        db.execSQL(updateQuery, arrayOf(""+time))
         db.close()
+    }
 
+    /**
+     * sets all the columns to be 0 (except the id).
+     */
+    fun clearData(){
+        val db : SQLiteDatabase = DB.writableDatabase
+        val updateQuery = "UPDATE $TABLE_NAME SET $COL_SUN = 0 , $COL_MON = 0, $COL_TUS = 0, $COL_WED = 0," +
+                "$COL_THU = 0, $COL_FRI = 0, $COL_SAT = 0"
+        db.execSQL(updateQuery)
+        db.close()
     }
 }

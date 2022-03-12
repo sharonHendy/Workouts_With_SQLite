@@ -15,7 +15,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.gson.Gson
-import com.workouts.objects.Workout
+import com.workouts.DBHelper.DBHelper
+import com.workouts.DTOs.Exercise
+import com.workouts.DTOs.Workout
 import me.zhanghai.android.materialprogressbar.MaterialProgressBar
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -30,13 +32,16 @@ open class PlayWorkout : AppCompatActivity()  {
         Stopped, Paused, Running
     }
 
+    lateinit var db: DBHelper
+
     var timerState = TimerState.Stopped
 
     var player : MediaPlayer? = null //for sounds
     var playerEnd : MediaPlayer? = null
 
-    lateinit var workout: Workout
-     var indexOfWorkout: Int = 0
+    lateinit var workout: Workout //the current workout that is played
+    var exercises : MutableList<Exercise> = mutableListOf() //the current workouts exercises
+    // var workoutName: String? = null
     lateinit var btnStop : Button
     lateinit var btnStart : Button
     lateinit var btnPause : Button
@@ -49,6 +54,8 @@ open class PlayWorkout : AppCompatActivity()  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.play_workout)
 
+        db = DBHelper(this)
+
         this.window.decorView.setBackgroundColor(resources.getColor(R.color.black)) //grey
 
         setWorkoutAndExercises()
@@ -60,13 +67,13 @@ open class PlayWorkout : AppCompatActivity()  {
 
         findViewById<MaterialProgressBar>(R.id.progressCountdown).progress = 100
 
-        btnStart.isEnabled = workout.exercisesAndTimes.size != 0
+        btnStart.isEnabled = exercises.size != 0
         btnStop.isEnabled = false
         btnPause.isEnabled = false
 
 
         //displays total time
-        findViewById<TextView>(R.id.timeCountdown).text = workout.totalTime
+        findViewById<TextView>(R.id.timeCountdown).text = workout.getTotalTime()
 
         //open listener for play button
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
@@ -93,19 +100,22 @@ open class PlayWorkout : AppCompatActivity()  {
         backToMyWorkouts()
     }
 
+    /**
+     * sets the workout and its exercises views.
+     */
     open fun setWorkoutAndExercises(){
-        val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(this)
-        indexOfWorkout = intent.getIntExtra("WorkoutIndex",0)
-        workout  = listOfWorkouts.elementAt(indexOfWorkout)
+        val workoutName = intent.getStringExtra("WorkoutName")
+        workout  = db.WORKOUTS.getWorkout( workoutName!!)!!
+        exercises = db.getExercisesOfWorkout(workout.name)!!
 
         playedWorkoutName.text = workout.name
 
         val ll_exercisesNext : LinearLayout = findViewById(R.id.ll_exercisesNext)
-        for (exercise in workout.exercisesAndTimes){
+        for (exercise in exercises){
             val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val rowView: View = inflater.inflate(R.layout.exercise_details, null)
             rowView.findViewById<TextView>(R.id.MW_exerciseName).text = exercise.name
-            rowView.findViewById<TextView>(R.id.MW_exerciseTime).text = exercise.time
+            rowView.findViewById<TextView>(R.id.MW_exerciseTime).text = exercise.getTime()
             ll_exercisesNext.addView(rowView)
         }
     }
@@ -153,7 +163,7 @@ open class PlayWorkout : AppCompatActivity()  {
         ll_exercisesNext.removeAllViews()
         setWorkoutAndExercises()
         initializeColor()
-        findViewById<TextView>(R.id.timeCountdown).text = workout.totalTime
+        findViewById<TextView>(R.id.timeCountdown).text = workout.getTotalTime()
 
         saveTotalTimeOfWorkout()
         releasePlayer()
@@ -186,8 +196,8 @@ open class PlayWorkout : AppCompatActivity()  {
         btnStop.isEnabled = true
         btnStart.isEnabled = false
 
-        val exercise = workout.exercisesAndTimes[0]
-        startTimeCounterForExercise(exercise.timeInMillis, 0)
+        val exercise = exercises[0]
+        startTimeCounterForExercise(exercise.getTimeInMillis(), 0)
     }
 
     fun startTimeCounterForExercise(timeInMillis : Long, i : Int) {
@@ -217,7 +227,7 @@ open class PlayWorkout : AppCompatActivity()  {
                     val min : Long = (millisUntilFinished / 60000) % 60
                     val sec : Long = (millisUntilFinished / 1000) % 60
                     countTime.text = format.format(hour) + ":" + format.format(min) + ":" + format.format(sec)
-                    val total :Float= (workout.exercisesAndTimes[i].timeInMillis/1000).toFloat()
+                    val total :Float= (exercises[i].getTimeInMillis()/1000).toFloat()
                     val secondsRemaining :Float = (millisUntilFinished / 1000).toFloat()
                     val progress = ((secondsRemaining / total) * 100).toInt()
                     findViewById<MaterialProgressBar>(R.id.progressCountdown).progress = progress
@@ -233,8 +243,8 @@ open class PlayWorkout : AppCompatActivity()  {
                 countTime.text = "00:00:00"
                 ll_exercisesNext.removeViewAt(0)
                 timePassed += timeInMillis //for the charts
-                if(i+1 < workout.exercisesAndTimes.size){ //starts timer for the next exercise
-                    startTimeCounterForExercise(workout.exercisesAndTimes[i + 1].timeInMillis, i + 1)
+                if(i+1 < exercises.size){ //starts timer for the next exercise
+                    startTimeCounterForExercise(exercises[i + 1].getTimeInMillis(), i + 1)
                 }
                 else{ //workout finished, stops the timer and resets
                     playerEnd?.start()
@@ -259,45 +269,31 @@ open class PlayWorkout : AppCompatActivity()  {
 
     }
 
-    //save the total time of workout that has been done
+    /**
+     * save the total time of workout that has been done in week performance
+     */
     fun saveTotalTimeOfWorkout(){
-        val sharedPreferences: SharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        val weekPerformance1 = getWeekPerformance1(this)
+//        val sharedPreferences: SharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+//        val editor: SharedPreferences.Editor = sharedPreferences.edit()
+//        val weekPerformance1 = getWeekPerformance1(this)
 
         val cal : Calendar = Calendar.getInstance()
         val day : Int = cal.get(Calendar.DAY_OF_WEEK)
+        db.WEEK_PERFORMANCES.addTimeToWeekPerformance( day, (timePassed/1000).toFloat()/60)
 
-        when (day){ //saves time in minutes
-            Calendar.SUNDAY -> weekPerformance1[0] += (timePassed/1000).toFloat()/60
-            Calendar.MONDAY -> weekPerformance1[1] += (timePassed/1000).toFloat()/60
-            Calendar.TUESDAY -> weekPerformance1[2] += (timePassed/1000).toFloat()/60
-            Calendar.WEDNESDAY -> weekPerformance1[3] += (timePassed/1000).toFloat()/60
-            Calendar.THURSDAY -> weekPerformance1[4] += (timePassed/1000).toFloat()/60
-            Calendar.FRIDAY -> weekPerformance1[5] += (timePassed/1000).toFloat()/60
-            Calendar.SATURDAY -> weekPerformance1[6] += (timePassed/1000).toFloat()/60
-        }
-
-        val jsonString = Gson().toJson(weekPerformance1)
-        editor.putString("weekPerformance1",jsonString)
-        editor.apply()
         timePassed = 0
     }
 
-    //adds to number of times the workout was played
+    /**
+     * adds to number of times the workout was played.
+     */
     fun addToTimePlayedOfWorkout(){
-        val sharedPreferences: SharedPreferences = getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        val listOfWorkouts  = getListOfWorkouts(this)
-        workout.addToTimePlayed()
-        listOfWorkouts.remove(workout)
-        listOfWorkouts.add(workout)
-        val jsonString = Gson().toJson(listOfWorkouts)
-        editor.putString("ListOfWorkouts",jsonString)
-        editor.apply()
+        db.WORKOUTS.addToTimePlayed( workout.name)
     }
 
-    //releases media player when completes sound
+    /**
+     * releases media player when completes sound.
+     */
     fun releasePlayer(){
         player?.setOnCompletionListener {
             player?.release()
@@ -310,14 +306,18 @@ open class PlayWorkout : AppCompatActivity()  {
 
     }
 
-    //colors the exercises in light grey
+    /**
+     * colors the exercises in light grey.
+     */
     open fun initializeColor(){
-        for (j in 0 until workout.exercisesAndTimes.size ){
+        for (j in 0 until exercises.size ){
             setExerciseColor(j,"#BCBEBE")  //light grey
         }
     }
 
-    //colors the exercise with the index with the color
+    /**
+     * colors the exercise with the index with the color
+     */
     fun setExerciseColor(exerciseIndex: Int, color: String){
         val exercise = findViewById<LinearLayout>(R.id.ll_exercisesNext).getChildAt(exerciseIndex)
         exercise.findViewById<TextView>(R.id.MW_exerciseName).setTextColor(Color.parseColor(color))

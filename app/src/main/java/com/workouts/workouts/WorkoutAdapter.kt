@@ -16,11 +16,13 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.workouts.objects.Workout
+import com.workouts.DBHelper.DBHelper
+import com.workouts.DTOs.Workout
 import kotlinx.android.synthetic.main.new_workout.view.*
 
 
 class WorkoutAdapter(
+    private val db : DBHelper,
     private val workouts: HashSet<Workout>,
     private val favOnly: Boolean,
     private val context : Context,
@@ -46,7 +48,7 @@ class WorkoutAdapter(
         val curWorkout = workouts.elementAt(position)
         holder.itemView.apply {
             findViewById<TextView>(R.id.workoutName).text = curWorkout.name
-            findViewById<TextView>(R.id.totalTime).text = curWorkout.totalTime
+            findViewById<TextView>(R.id.totalTime).text = curWorkout.getTotalTime()
 
             findViewById<Button>(R.id.btnAddToCombo).isVisible = false
             findViewById<TextView>(R.id.tv_fav).isVisible = curWorkout.isFavorite
@@ -78,7 +80,7 @@ class WorkoutAdapter(
     fun openWorkoutDetails(workout: Workout, view: View){
         // val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
 
-        val exerciseAdapter = ExerciseAdapter(workout.exercisesAndTimes)
+        val exerciseAdapter = ExerciseAdapter(db.getExercisesOfWorkout(workout.name)!!)
         val inflater = activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val rv_workoutExercises: RecyclerView = inflater.inflate(R.layout.workout_exercises, null) as RecyclerView
         view.findViewById<FrameLayout>(R.id.rv_container).addView(rv_workoutExercises)
@@ -133,9 +135,9 @@ class WorkoutAdapter(
 
     //starts play workout activity
     fun startWorkout(workout: Workout){
-        val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(activity)
+        //val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(activity)
         val intent = Intent(context, PlayWorkout::class.java)
-            .putExtra("WorkoutIndex", listOfWorkouts.indexOf(workout))
+            .putExtra("WorkoutName", workout.name)
         startActivity(context,intent,null)
     }
 

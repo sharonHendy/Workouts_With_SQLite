@@ -21,13 +21,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.google.gson.Gson
-import com.workouts.objects.Combo
-import com.workouts.objects.Workout
+import com.workouts.DBHelper.DBHelper
+import com.workouts.DTOs.*
 import kotlinx.android.synthetic.main.fragment_my_workouts.*
 
 
 class MyWorkoutsFragment : Fragment() {
 
+    private lateinit var db : DBHelper
     var favClickedOn : Boolean = false
     var comboClickedOn : Boolean = false
     var newCombo : Combo? = null
@@ -39,12 +40,16 @@ class MyWorkoutsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        db = DBHelper(requireContext())
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_my_workouts, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
 
         //sets listener for favorite button, show only favorite workouts
         btnFavorites.setOnClickListener {
@@ -118,8 +123,8 @@ class MyWorkoutsFragment : Fragment() {
                 rotationYBy(-360f)
             }.withEndAction {
                 btnAddToCombo.visibility = View.GONE
-                val indexOfChild = ll_MyWorkouts.indexOfChild(item)
-                if(favClickedOn || getListOfWorkouts(requireActivity()).elementAt(indexOfChild).isFavorite){
+                val nameOfWorkout = item.findViewById<TextView>(R.id.workoutName).text.toString()
+                if(favClickedOn || db.WORKOUTS.getWorkoutIsFavorite(nameOfWorkout)){
                     tv_fav.apply{
                         alpha = 0f
                         visibility = View.VISIBLE
@@ -161,7 +166,7 @@ class MyWorkoutsFragment : Fragment() {
     fun createCombo(){
 
         comboClickedOn = true
-        val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
+        //val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
         //val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
         for (item in ll_MyWorkouts){
             val btnAddToCombo = item.findViewById<Button>(R.id.btnAddToCombo)
@@ -185,7 +190,7 @@ class MyWorkoutsFragment : Fragment() {
                 }
             }
 
-            newCombo = Combo("name")
+            newCombo = Combo("name", mutableListOf()) //todo add text vie to enter name in the dialog
 
             //animate changing the create button
             changeBtnCreateAnimation("create combo", R.drawable.create)
@@ -206,35 +211,27 @@ class MyWorkoutsFragment : Fragment() {
 
     /**
      * adds selected workout to combo and modifies the position
+     * @param the item chosen
      */
     fun addToCombo(item : View){
-        //closeWorkoutDetails(workoutWithDetailsOpen,viewWithDetailsOpen) //closes details if open
-
-        //loads the list of workouts
-        val listOfWorkouts : HashSet<Workout> = if(favClickedOn){
-            getListOfFavoriteWorkouts(requireActivity())
-        }else{
-            getListOfWorkouts(requireActivity())
-        }
 
         //adds the workout to the combo
-        //val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
         val btnAddToCombo = item.findViewById<Button>(R.id.btnAddToCombo)
-        val index = ll_MyWorkouts.indexOfChild(item)
-        val currWorkout = listOfWorkouts.elementAt(index)
-        if(btnAddToCombo.text.equals("")){
-            newCombo?.addWorkout(currWorkout)
+        val currWorkoutId : Int = db.WORKOUTS.getWorkoutId(item.findViewById<TextView>(R.id.workoutName).text.toString())!!
+        if(btnAddToCombo.text.equals("")){ //it hasn't been selected yet
+            newCombo?.addWorkoutId(""+currWorkoutId)
             position++
             btnAddToCombo.text = "$position"
         }else{
             btnAddToCombo.text = ""
             position--
-            newCombo!!.workouts.remove(currWorkout)
+            newCombo!!.removeWorkoutId(""+currWorkoutId)
             for (i in ll_MyWorkouts){ //organizes the indexes
                 val btnAddToCombo2 = i.findViewById<Button>(R.id.btnAddToCombo)
-                val currWorkout2 = listOfWorkouts.elementAt(ll_MyWorkouts.indexOfChild(i))
                 if(!(btnAddToCombo2.text.equals(""))){
-                    val index = newCombo!!.workouts.indexOf(currWorkout2)
+                    val currWorkoutName = i.findViewById<TextView>(R.id.workoutName).text.toString()
+                    val currWorkoutId2 = db.WORKOUTS.getWorkoutId( currWorkoutName)
+                    val index = newCombo!!.workouts.indexOf(""+currWorkoutId2)
                     btnAddToCombo2.text = ""+ (index+1)
                 }
             }
@@ -242,7 +239,8 @@ class MyWorkoutsFragment : Fragment() {
     }
 
     /**
-     * opens start create combo dialog
+     * opens start combo dialog. saves combo in db.
+     * @pre newCombo != null && newCombo.workouts.size() > 0
      */
     fun saveCombo(){
         if(newCombo!=null){
@@ -251,28 +249,32 @@ class MyWorkoutsFragment : Fragment() {
 
             val ll_selectedWorkouts = dialog.findViewById<LinearLayout>(R.id.ll_selectedWorkouts)
             //inflates selected workouts views
-            for(workout in newCombo!!.workouts){
+            for(workoutId in newCombo!!.workouts){
                 val inflater =
                     requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
                 val rowView: View = inflater.inflate(R.layout.workout_selected_for_combo, null)
 
-                rowView.findViewById<TextView>(R.id.S_workoutName).text = workout.name
-                rowView.findViewById<TextView>(R.id.S_workoutTime).text = workout.totalTime
+                val workoutName : String? = db.WORKOUTS.getWorkoutName( Integer.parseInt(workoutId))
+                rowView.findViewById<TextView>(R.id.S_workoutName).text = workoutName
+                rowView.findViewById<TextView>(R.id.S_workoutTime).text = db.WORKOUTS.getTotalTimeOfWorkout( workoutName!!)
                 ll_selectedWorkouts.addView(rowView,ll_selectedWorkouts.childCount)
             }
             dialog.findViewById<Button>(R.id.btnPlayCombo).setOnClickListener {
 
-                //saves combo in shared prefs
-                val sharedPreferences: SharedPreferences =
-                    requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+//                //saves combo in shared prefs
+//                val sharedPreferences: SharedPreferences =
+//                    requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
+//                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+//
+//                val jsonString = Gson().toJson(newCombo)
+//                editor.putString("Combo", jsonString)
+//                editor.apply()
 
-                val jsonString = Gson().toJson(newCombo)
-                editor.putString("Combo", jsonString)
-                editor.apply()
+                //save combo in db
+                db.COMBOS.addCombo(newCombo!!)
 
                 //val listOfCombos : HashSet<Combo> = getListOfCombos()
-                val intent = Intent(requireContext(), PlayCombo::class.java)
+                val intent = Intent(requireContext(), PlayCombo::class.java).putExtra("ComboName", newCombo!!.name)
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
 
@@ -302,14 +304,16 @@ class MyWorkoutsFragment : Fragment() {
      */
      fun update(favOnly : Boolean = false){
 
-        val listOfWorkouts : HashSet<Workout>
+        var listOfWorkouts : HashSet<Workout>
         val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
         ll_MyWorkouts.removeAllViews()
 
         if (favOnly){
-            listOfWorkouts = getListOfFavoriteWorkouts(requireActivity())
+            //listOfWorkouts = getListOfFavoriteWorkouts(requireActivity())
+            listOfWorkouts = db.WORKOUTS.getFavoriteWorkouts()
         }else{
-            listOfWorkouts = getListOfWorkouts(requireActivity())
+            //listOfWorkouts = getListOfWorkouts(requireActivity())
+            listOfWorkouts = db.WORKOUTS.getAllWorkouts()
         }
 //
 //        val workoutAdapter = WorkoutAdapter(listOfWorkouts,favOnly, requireContext(), requireActivity())
@@ -327,10 +331,10 @@ class MyWorkoutsFragment : Fragment() {
                 rowView.findViewById<Button>(R.id.btnAddToCombo).isVisible = false
                 rowView.findViewById<TextView>(R.id.tv_fav).isVisible = workout.isFavorite
 
-                val name: String = workout.name
-                val totalTime: String = workout.totalTime
-                rowView.findViewById<TextView>(R.id.workoutName).text = name
-                rowView.findViewById<TextView>(R.id.totalTime).text = totalTime
+//                val name: String = workout.name
+//                val totalTime: String = workout.totalTime
+                rowView.findViewById<TextView>(R.id.workoutName).text = workout.name
+                rowView.findViewById<TextView>(R.id.totalTime).text = workout.getTotalTime()
 
                 ll_MyWorkouts!!.addView(rowView, ll_MyWorkouts!!.childCount)
 
@@ -389,25 +393,27 @@ class MyWorkoutsFragment : Fragment() {
         fragmentTransaction.commit()
     }
 
-
+    /**
+     * opens the play workout activity, sends the workout name.
+     */
     fun startWorkout(workout: Workout){
-        val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
         val intent = Intent(requireContext(), PlayWorkout::class.java)
-            .putExtra("WorkoutIndex", listOfWorkouts.indexOf(workout))
+            .putExtra("WorkoutName", workout.name)
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
 
-    //opens edit fragment and sends the index of the workout in the list
+    /**
+     * opens edit fragment and sends the workouts name, and favOnlyPressed.
+     */
     fun editWorkout(workout: Workout){
 
-            val listOfWorkouts : HashSet<Workout> = getListOfWorkouts(requireActivity())
             val fragmentManager = parentFragmentManager
 
-            //send index of the workout to edit
+            //send name of the workout to edit
             val bundle : Bundle  = bundleOf()
-            bundle.putInt("index", listOfWorkouts.indexOf(workout))
-            bundle.putBoolean("favOnlyPressed", favClickedOn)
+            bundle.putString("workoutName", workout.name)
+            bundle.putBoolean("favOnlyPressed", favClickedOn) //todo need this?
             val fragment = CreateFragment()
             fragment.arguments = bundle
 
@@ -425,7 +431,9 @@ class MyWorkoutsFragment : Fragment() {
     fun openWorkoutDetails(workout: Workout, rowView: View){
        // val ll_MyWorkouts = requireView().findViewById<LinearLayout>(R.id.ll_MyWorkouts)
 
-        val exerciseAdapter = ExerciseAdapter(workout.exercisesAndTimes)
+        var lstOfExercises: MutableList<Exercise>? = db.getExercisesOfWorkout(workout.name)
+
+        val exerciseAdapter = ExerciseAdapter(lstOfExercises!!)
 
         val inflater = requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val rvView: View = inflater.inflate(R.layout.workout_details, null)

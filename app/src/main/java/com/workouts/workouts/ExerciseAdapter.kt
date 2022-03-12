@@ -4,7 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.workouts.objects.Exercise
+import com.workouts.DTOs.Exercise
 
 
 class ExerciseAdapter(
@@ -27,7 +27,7 @@ class ExerciseAdapter(
         val curExercise = exercises[position]
         holder.itemView.apply {
             findViewById<TextView>(R.id.MW_exerciseName).text = curExercise.name
-            findViewById<TextView>(R.id.MW_exerciseTime).text = curExercise.time
+            findViewById<TextView>(R.id.MW_exerciseTime).text = curExercise.getTime()
         }
     }
 

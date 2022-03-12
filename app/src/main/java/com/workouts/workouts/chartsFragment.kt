@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.core.content.ContextCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.github.mikephil.charting.components.Legend
@@ -18,11 +19,14 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 
 import com.github.mikephil.charting.utils.ViewPortHandler
 import com.google.gson.Gson
+import com.workouts.DBHelper.DBHelper
+import com.workouts.DTOs.WeekPerformance
 import kotlinx.android.synthetic.main.fragment_charts.*
 import java.text.DecimalFormat
 
 class chartsFragment : Fragment() {
 
+    lateinit var db : DBHelper
     lateinit var colors:ArrayList<Int>
     var showLastWeek :Boolean = false
 
@@ -30,32 +34,37 @@ class chartsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        db = DBHelper(requireContext())
         // Inflate the layout for this fragment
         val v : View = inflater.inflate(R.layout.fragment_charts, container, false)
         //colors
         colors = ArrayList<Int>()
-        colors.add(resources.getColor(R.color.pastel_blue))
-        colors.add(resources.getColor(R.color.pastel_green))
-        colors.add(resources.getColor(R.color.pastel_purple))
-        colors.add(resources.getColor(R.color.pastel_pink))
-        colors.add(resources.getColor(R.color.pastel_grey))
+        colors.add(ContextCompat.getColor(requireContext(),R.color.pastel_blue))
+        colors.add(ContextCompat.getColor(requireContext(),R.color.pastel_green))
+        colors.add(ContextCompat.getColor(requireContext(),R.color.pastel_purple))
+        colors.add(ContextCompat.getColor(requireContext(),R.color.pastel_pink))
+        colors.add(ContextCompat.getColor(requireContext(),R.color.pastel_grey))
 
-        //v.findViewById<BarChart>(R.id.barChart).invalidate();
         return v
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setBarChartValues(getWeekPerformance1(requireActivity()))
+
+
+        var weekPerformance = db.WEEK_PERFORMANCES.getWeekPerformance( 1)
+        setBarChartValues(weekPerformance)
+
         setPieChartValues()
 
-        btnLastWeek.setOnClickListener {
+        btnLastWeek.setOnClickListener { //todo 4 weeks..
             if (!showLastWeek){
-                setBarChartValues(getWeekPerformance2(requireActivity()))
+                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(2))
                 btnLastWeek.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.arrow_forward)
             }else{
-                setBarChartValues(getWeekPerformance1(requireActivity()))
+                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(1))
                 btnLastWeek.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.arrow_back)
             }
             showLastWeek = !showLastWeek
@@ -74,9 +83,9 @@ class chartsFragment : Fragment() {
 
         btnRefreshBarChart.setOnClickListener {
             if(showLastWeek){
-                setBarChartValues(getWeekPerformance2(requireActivity()))
+                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(2))
             }else{
-                setBarChartValues(getWeekPerformance1(requireActivity()))
+                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance( 1))
             }
         }
 
@@ -91,22 +100,7 @@ class chartsFragment : Fragment() {
      * clears the charts data.
      */
     fun clearHistory(){
-        val sharedPreferences: SharedPreferences =
-            requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-        val editor: SharedPreferences.Editor = sharedPreferences.edit()
-        editor.putString("weekPerformance1", null)
-
-        val listOfWorkouts = getListOfWorkouts(requireActivity())
-        for (workout in listOfWorkouts){
-            workout.timePlayed = 0
-        }
-        val jsonStr = Gson().toJson(listOfWorkouts)
-        editor.putString("ListOfWorkouts",jsonStr)
-
-        editor.apply()
-
-        val weekPerformance1 = getWeekPerformance1(requireActivity())
-        setBarChartValues(weekPerformance1)
+        db.WEEK_PERFORMANCES.clearData()
         setPieChartValues()
     }
 
@@ -134,7 +128,7 @@ class chartsFragment : Fragment() {
         //yvalue
         val yValues = ArrayList<Float>()
 
-        val listOfWorkouts = getListOfWorkouts(requireActivity())
+        val listOfWorkouts = db.WORKOUTS.getAllWorkouts()
         for (workout in listOfWorkouts){
             if (workout.timePlayed > 0){
                 xValues.add(workout.name)
@@ -149,7 +143,8 @@ class chartsFragment : Fragment() {
 
         //fill the chart
         val pieDataSet = PieDataSet(pieChartEntry,"")
-        pieDataSet.color = resources.getColor(R.color.light_gray)
+        pieDataSet.color = ContextCompat.getColor(requireContext(),R.color.light_gray)
+//        pieDataSet.color = resources.getColor(R.color.light_gray)
         pieDataSet.sliceSpace = 4f
         pieDataSet.colors = colors
         pieDataSet.valueTextSize = 14f
@@ -160,15 +155,15 @@ class chartsFragment : Fragment() {
         pieChart.data = data
 
         pieChart.holeRadius = 40f
-        pieChart.setHoleColor(resources.getColor(R.color.grey3))
-        pieChart.setBackgroundColor(resources.getColor(R.color.grey3))
+        pieChart.setHoleColor(ContextCompat.getColor(requireContext(),R.color.grey3))
+        pieChart.setBackgroundColor(ContextCompat.getColor(requireContext(),R.color.grey3))
         pieChart.setDescription("")
         //pieChart.animateY(2000)
         pieChart.animateXY(2000,2000)
 
         val legend : Legend = pieChart.legend
         legend.position = Legend.LegendPosition.LEFT_OF_CHART
-        legend.textColor = resources.getColor(R.color.white)
+        legend.textColor = ContextCompat.getColor(requireContext(),R.color.white)
 
         pieChart.invalidate()
   //      pieChart.setUsePercentValues(true)
@@ -191,7 +186,7 @@ class chartsFragment : Fragment() {
     }
 
 
-    fun setBarChartValues(weekPerformance : ArrayList<Float>){
+    fun setBarChartValues(weekPerformance : WeekPerformance){
         val xvalues : ArrayList<String> = ArrayList<String>()
         xvalues.add("SUN")
         xvalues.add("MON")
@@ -202,13 +197,13 @@ class chartsFragment : Fragment() {
         xvalues.add("SAT")
 
         val barEntries = ArrayList<BarEntry>()
-        barEntries.add(BarEntry(weekPerformance[0].toFloat(),0))
-        barEntries.add(BarEntry(weekPerformance[1].toFloat(),1))
-        barEntries.add(BarEntry(weekPerformance[2].toFloat(),2))
-        barEntries.add(BarEntry(weekPerformance[3].toFloat(),3))
-        barEntries.add(BarEntry(weekPerformance[4].toFloat(),4))
-        barEntries.add(BarEntry(weekPerformance[5].toFloat(),5))
-        barEntries.add(BarEntry(weekPerformance[6].toFloat(),6))
+        barEntries.add(BarEntry(weekPerformance.SUN,0))
+        barEntries.add(BarEntry(weekPerformance.MON,1))
+        barEntries.add(BarEntry(weekPerformance.TUS,2))
+        barEntries.add(BarEntry(weekPerformance.WED,3))
+        barEntries.add(BarEntry(weekPerformance.THU,4))
+        barEntries.add(BarEntry(weekPerformance.FRI,5))
+        barEntries.add(BarEntry(weekPerformance.SAT,6))
 
         var barDataSet = BarDataSet(barEntries,"total time of workout")
         barDataSet.colors = colors

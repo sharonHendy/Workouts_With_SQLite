@@ -5,7 +5,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.workouts.DTOs.Exercise
 
-class DAOExercises(db : DBHelper) {
+class DAOExercises(db: DBHelper) {
     val TABLE_NAME = "Exercises"
 
     val COL_ID = "Id"
@@ -13,7 +13,7 @@ class DAOExercises(db : DBHelper) {
     val COL_SEC = "Seconds"
     val COL_MIN = "Minutes"
 
-    private var currId = 0
+    //private var currId = 0
     private val DB : DBHelper = db
 
     /**
@@ -33,22 +33,44 @@ class DAOExercises(db : DBHelper) {
         return lstOfNames
     }
 
+//    /**
+//     * adds a new exercise to the table.
+//     * @return the id of the exercise, or -1 if unsuccessful.
+//     */
+//    fun addExercise(DB : DBHelper, name: String, seconds: Int, minutes : Int):Int{
+//        val values = ContentValues()
+//        values.put(COL_ID, currId)
+//        values.put(COL_NAME, name)
+//        values.put(COL_SEC, seconds)
+//        values.put(COL_MIN, minutes)
+//        val db : SQLiteDatabase = DB.writableDatabase
+//        val isSuccessful = db.insert(TABLE_NAME, null, values)
+//        db.close()
+//        if(isSuccessful != -1L) {
+//            currId += 1
+//            return currId - 1
+//        }
+//        return -1
+//    }
+
     /**
-     * adds a new exercise to the table.
-     * @return true if successful, false otherwise.
+     * adds a new exercise to the table. for DBHelper use only.
+     * @return the id of the exercise, or -1 if unsuccessful.
      */
-    fun addExercise(name: String, seconds: Int, minutes : Int):Boolean{
+    fun addExercise(exercise: Exercise):Int{
         val values = ContentValues()
-        values.put(COL_ID, currId)
-        values.put(COL_NAME, name)
-        values.put(COL_SEC, seconds)
-        values.put(COL_MIN, minutes)
+        //values.put(COL_ID, currId)
+        values.put(COL_NAME, exercise.name)
+        values.put(COL_SEC, exercise.seconds)
+        values.put(COL_MIN, exercise.minutes)
         val db : SQLiteDatabase = DB.writableDatabase
-        val isSuccessful = db.insert(TABLE_NAME, null, values)
+        val id = db.insert(TABLE_NAME, null, values)
         db.close()
-        if(isSuccessful != -1L)
-            currId += currId
-        return isSuccessful != -1L
+        if(id != -1L) {
+           // currId += 1
+            return id.toInt() //the row id of the new inserted row
+        }
+        return -1
     }
 
     /**
@@ -61,11 +83,10 @@ class DAOExercises(db : DBHelper) {
         val db = DB.writableDatabase
         val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(""+id))
         if (cursor.moveToFirst()){
-            exercise = Exercise()
-            exercise.id = id
-            exercise.name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
-            exercise.seconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_SEC))
-            exercise.minutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_MIN))
+            val name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+            val seconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_SEC))
+            val minutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_MIN))
+            exercise = Exercise(name, seconds, minutes)
         }
         db.close()
         return exercise

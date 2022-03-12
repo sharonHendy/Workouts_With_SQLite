@@ -36,7 +36,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnDelete"
         app:layout_constraintTop_toTopOf="parent"
-        android:background="@drawable/btn_round_time"/>
+        android:background="@drawable/btn_round_time"
+        android:layoutDirection="ltr"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnDelete"
