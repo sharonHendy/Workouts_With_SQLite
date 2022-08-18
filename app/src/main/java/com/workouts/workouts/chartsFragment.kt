@@ -28,7 +28,8 @@ class chartsFragment : Fragment() {
 
     lateinit var db : DBHelper
     lateinit var colors:ArrayList<Int>
-    var showLastWeek :Boolean = false
+   // var showLastWeek :Boolean = false
+    var numOfWeek: Int = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,14 +61,25 @@ class chartsFragment : Fragment() {
         setPieChartValues()
 
         btnLastWeek.setOnClickListener { //todo 4 weeks..
-            if (!showLastWeek){
-                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(2))
-                btnLastWeek.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.arrow_forward)
-            }else{
-                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(1))
-                btnLastWeek.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.arrow_back)
+            if(numOfWeek < 4){
+                numOfWeek += 1
+                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(numOfWeek))
             }
-            showLastWeek = !showLastWeek
+//            if (!showLastWeek){
+//                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(2))
+//                btnLastWeek.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.arrow_forward)
+//            }else{
+//                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(1))
+//                btnLastWeek.setCompoundDrawablesWithIntrinsicBounds(0,0,0,R.drawable.arrow_back)
+//            }
+//            showLastWeek = !showLastWeek
+        }
+
+        btnNextWeek.setOnClickListener {
+            if(numOfWeek > 1){
+                numOfWeek -= 1
+                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(numOfWeek))
+            }
         }
 
         btnClearHistory.setOnClickListener {
@@ -82,11 +94,12 @@ class chartsFragment : Fragment() {
 
 
         btnRefreshBarChart.setOnClickListener {
-            if(showLastWeek){
-                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(2))
-            }else{
-                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance( 1))
-            }
+//            if(showLastWeek){
+//                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(2))
+//            }else{
+//                setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance( 1))
+//            }
+            setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(numOfWeek))
         }
 
         btnRefreshPieChart.setOnClickListener {
@@ -101,6 +114,9 @@ class chartsFragment : Fragment() {
      */
     fun clearHistory(){
         db.WEEK_PERFORMANCES.clearData()
+        db.WORKOUTS.resetTimePlayed()
+        numOfWeek = 1
+        setBarChartValues(db.WEEK_PERFORMANCES.getWeekPerformance(1))
         setPieChartValues()
     }
 

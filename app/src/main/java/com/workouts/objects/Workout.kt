@@ -19,6 +19,7 @@ data class Workout(var name: String){
         timePlayed += 1
     }
 
+
     /**
     creates an exercise and adds it to the workout.
      */

@@ -82,6 +82,18 @@
                             android:padding="5dp"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintTop_toBottomOf="@+id/textView2" />
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btnNextWeek"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_margin="8dp"
+                            android:background="@color/grey2"
+                            android:backgroundTint="@color/grey2"
+                            android:drawableBottom="@drawable/arrow_forward"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:padding="6dp"
+                            app:layout_constraintEnd_toStartOf="@+id/btnRefreshBarChart"
+                            app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btnLastWeek"
@@ -93,7 +105,7 @@
                             android:drawableBottom="@drawable/arrow_back"
                             android:foreground="?attr/selectableItemBackground"
                             android:padding="6dp"
-                            app:layout_constraintEnd_toStartOf="@+id/btnRefreshBarChart"
+                            app:layout_constraintEnd_toStartOf="@+id/btnNextWeek"
                             app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
 

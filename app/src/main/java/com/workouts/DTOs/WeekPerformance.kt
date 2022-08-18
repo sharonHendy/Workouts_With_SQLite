@@ -8,6 +8,7 @@ class WeekPerformance {
     var THU: Float = 0f
     var FRI: Float = 0f
     var SAT: Float = 0f
+    var START_OF_WEEK : Long = 0
 
     constructor(){}
 

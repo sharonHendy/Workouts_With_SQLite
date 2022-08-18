@@ -280,24 +280,26 @@ class CreateFragment : Fragment() {
                 db.deleteWorkout(workout!!.name)
             }
 
+            val workoutId : Int = db.WORKOUTS.addWorkout(newWorkout)
+
             //adds the exercises to the workout
             val ll_fields: LinearLayout = requireView().findViewById(R.id.ll_fields)
-            var j = 0
+            var index = 0
             for (field in ll_fields.children) {
                 if (field is ConstraintLayout) {
                     val name: String = field.findViewById<EditText>(R.id.exerciseName).text.toString()
                     val time: String = field.findViewById<Button>(R.id.btnTime).text.toString()
-                    val exercise :Exercise = Exercise(name, time)
+                    val exercise :Exercise = Exercise(name, time, workoutId, index)
                     val exerciseId : Int = db.EXERCISES.addExercise(exercise)
                     if(exerciseId == -1)
                         throw Exception("tried to add exercise with id that already exists.")
-                    newWorkout.addExercise(""+ exerciseId, time)
-                    j++
+                    //newWorkout.addExercise(""+ exerciseId, time)
+                    index++
                 }
             }
 
-            db.WORKOUTS.addWorkout(newWorkout)
-
+            db.WORKOUTS.setNumOfExercises(workoutId, index + 1)
+            db.computeTotalTimeOfWorkout(newWorkoutName)
             Toast.makeText(requireContext(), "saved workout", Toast.LENGTH_SHORT).show()
             cancel()
         }
@@ -308,8 +310,12 @@ class CreateFragment : Fragment() {
      */
     fun checkFields() : Boolean{
         var output = true
-        if(requireView().findViewById<EditText>(R.id.et_NewWorkoutName).text.toString().equals("")){
+        val workoutName = requireView().findViewById<EditText>(R.id.et_NewWorkoutName).text.toString()
+        if(workoutName.equals("")) {
             output = false
+        }else if(workout == null && db.WORKOUTS.getWorkoutsNames().contains(workoutName)){
+            Toast.makeText(requireContext(), "this workout name already exists", Toast.LENGTH_SHORT).show()
+            return false
         }else{
             val ll_fields: LinearLayout = requireView().findViewById(R.id.ll_fields)
             //var j = 0

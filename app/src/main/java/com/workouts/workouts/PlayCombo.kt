@@ -86,10 +86,10 @@ class PlayCombo : PlayWorkout() {
     override fun initializeColor(){
         var passed = 0
         for (w in workouts){
-            for (j in 0 until w.getNumOfExercises() ){
+            for (j in 0 until w.getNumberOfExercises() ){
                 setExerciseColor(j + passed ,"#BCBEBE")
             }
-            passed += w.getNumOfExercises() + 1
+            passed += w.getNumberOfExercises() + 1
 
         }
     }

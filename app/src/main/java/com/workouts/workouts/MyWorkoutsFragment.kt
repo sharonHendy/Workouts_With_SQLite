@@ -259,27 +259,28 @@ class MyWorkoutsFragment : Fragment() {
                 rowView.findViewById<TextView>(R.id.S_workoutTime).text = db.WORKOUTS.getTotalTimeOfWorkout( workoutName!!)
                 ll_selectedWorkouts.addView(rowView,ll_selectedWorkouts.childCount)
             }
+
+            //saves the combo and plays it
             dialog.findViewById<Button>(R.id.btnPlayCombo).setOnClickListener {
 
-//                //saves combo in shared prefs
-//                val sharedPreferences: SharedPreferences =
-//                    requireActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE)
-//                val editor: SharedPreferences.Editor = sharedPreferences.edit()
-//
-//                val jsonString = Gson().toJson(newCombo)
-//                editor.putString("Combo", jsonString)
-//                editor.apply()
+                newCombo!!.name = dialog.findViewById<EditText>(R.id.et_NewComboName).text.toString()
+                if(newCombo!!.name.equals("")){
+                    Toast.makeText(requireContext(), "please enter a name for the combo", Toast.LENGTH_SHORT).show()
+                }
+                else if(!db.COMBOS.getComboNames().contains(newCombo!!.name)) {
+                    //save combo in db
+                    db.COMBOS.addCombo(newCombo!!)
 
-                //save combo in db
-                db.COMBOS.addCombo(newCombo!!)
+                    //val listOfCombos : HashSet<Combo> = getListOfCombos()
+                    val intent = Intent(requireContext(), PlayCombo::class.java).putExtra("ComboName", newCombo!!.name)
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
 
-                //val listOfCombos : HashSet<Combo> = getListOfCombos()
-                val intent = Intent(requireContext(), PlayCombo::class.java).putExtra("ComboName", newCombo!!.name)
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
-
-                close_createCombo()
-                dialog.cancel()
+                    close_createCombo()
+                    dialog.cancel()
+                }else{
+                    Toast.makeText(requireContext(), "this combo name already exists", Toast.LENGTH_SHORT).show()
+                }
             }
             dialog.show()
         }
@@ -334,7 +335,7 @@ class MyWorkoutsFragment : Fragment() {
 //                val name: String = workout.name
 //                val totalTime: String = workout.totalTime
                 rowView.findViewById<TextView>(R.id.workoutName).text = workout.name
-                rowView.findViewById<TextView>(R.id.totalTime).text = workout.getTotalTime()
+                rowView.findViewById<TextView>(R.id.totalTime).text = db.WORKOUTS.getTotalTimeOfWorkout(workout.name)
 
                 ll_MyWorkouts!!.addView(rowView, ll_MyWorkouts!!.childCount)
 

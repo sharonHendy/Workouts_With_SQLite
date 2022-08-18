@@ -79,16 +79,20 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
                 "${WORKOUTS.COL_TOTAL_HOU} INTEGER," +
                 "${WORKOUTS.COL_IS_FAVORITE} BOOLEAN," +
                 "${WORKOUTS.COL_TIMES_PLAYED} INTEGER," +
-                "${WORKOUTS.COL_EXERCISES} TEXT)"
+                "${WORKOUTS.COL_NUM_OF_EXERCISES} INTEGER)"
+                //"${WORKOUTS.COL_EXERCISES} TEXT)"
                 )
         val CREATE_TABLE_EXERCISES_QUERY : String = ("CREATE TABLE ${EXERCISES.TABLE_NAME} " +
                 "(${EXERCISES.COL_ID} INTEGER PRIMARY KEY," +
                 "${EXERCISES.COL_NAME} TEXT," +
                 "${EXERCISES.COL_SEC} INTEGER," +
-                "${EXERCISES.COL_MIN} INTEGER)"
+                "${EXERCISES.COL_MIN} INTEGER," +
+                "${EXERCISES.COL_WORKOUT} INTEGER,"+
+                "${EXERCISES.COL_INDEX} INTEGER,"+ //todo!!
+                "FOREIGN KEY(${EXERCISES.COL_WORKOUT}) REFERENCES ${WORKOUTS.TABLE_NAME}(${WORKOUTS.COL_ID}))"
                 )
         val CREATE_TABLE_WEEK_PER_QUERY : String = ("CREATE TABLE ${WEEK_PERFORMANCES.TABLE_NAME} " +
-                "(${WEEK_PERFORMANCES.COL_ID} INTEGER PRIMARY KEY," +
+                "(${WEEK_PERFORMANCES.COL_START_OF_WEEK} LONG PRIMARY KEY," +
                 "${WEEK_PERFORMANCES.COL_SUN} FLOAT," +
                 "${WEEK_PERFORMANCES.COL_MON} FLOAT," +
                 "${WEEK_PERFORMANCES.COL_TUS} FLOAT," +
@@ -125,22 +129,28 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
     }
 
     /**
-     * returns a hash set of the workouts exercises.
+     * returns a Mutable List of the workouts exercises.
      * @return null if workout doesn't exists.
      */
     fun getExercisesOfWorkout(workoutName: String): MutableList<Exercise>?{
         var exercises = mutableListOf<Exercise>()
-        var exercisesStr : String? = WORKOUTS.getExercisesOfWorkoutStr(workoutName)
-        if (exercisesStr == null)
+
+        var workoutId : Int = WORKOUTS.getWorkoutId(workoutName)
+        if(workoutId == -1)
             return null
-        var lstOfIds : List<String> = exercisesStr.split(',')
-        for(id : String in lstOfIds){ //for each id, finds the matching exercise and adds it to the List
-            var exercise : Exercise? = EXERCISES.getExercise(Integer.parseInt(id.trim()))
-            if(exercise == null) //todo !!
-                throw Exception("workout contains id of exercise that doesn't exists. id:" + id)
-            exercises.add(exercise)
-        }
-        return exercises
+        return EXERCISES.getExercisesOfWorkout(workoutId)
+
+//        var exercisesStr : String? = WORKOUTS.getExercisesOfWorkoutStr(workoutName)
+//        if (exercisesStr == null)
+//            return null
+//        var lstOfIds : List<String> = exercisesStr.split(',')
+//        for(id : String in lstOfIds){ //for each id, finds the matching exercise and adds it to the List
+//            var exercise : Exercise? = EXERCISES.getExercise(Integer.parseInt(id.trim()))
+//            if(exercise == null) //todo !!
+//                throw Exception("workout contains id of exercise that doesn't exists. id:" + id)
+//            exercises.add(exercise)
+//        }
+//        return exercises
     }
 
     /**
@@ -148,23 +158,28 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
      * @return true if successful, false otherwise.
      */
     fun deleteWorkout(workoutName: String): Boolean{
-        var exercisesStr = WORKOUTS.getExercisesOfWorkoutStr(workoutName)
-        if (exercisesStr == null)
+        var workoutId : Int = WORKOUTS.getWorkoutId(workoutName)
+        if(workoutId == -1)
             return false
-        val lstExercises : List<String> = exercisesStr.split(',')
+        return EXERCISES.deleteExercisesOfWorkout(workoutId) && WORKOUTS.deleteWorkout(workoutName)
 
-        //deletes the workout from the workouts table
-        var isSuccessful = WORKOUTS.deleteWorkout(workoutName)
-
-        //deletes the workouts exercises
-        if (isSuccessful) {
-            for (id: String in lstExercises) {
-                EXERCISES.deleteExercise( Integer.parseInt(id.trim()))
-            }
-            return true
-        }
-        else
-            return false
+//        var exercisesStr = WORKOUTS.getExercisesOfWorkoutStr(workoutName)
+//        if (exercisesStr == null)
+//            return false
+//        val lstExercises : List<String> = exercisesStr.split(',')
+//
+//        //deletes the workout from the workouts table
+//        var isSuccessful = WORKOUTS.deleteWorkout(workoutName)
+//
+//        //deletes the workouts exercises
+//        if (isSuccessful) {
+//            for (id: String in lstExercises) {
+//                EXERCISES.deleteExercise( Integer.parseInt(id.trim()))
+//            }
+//            return true
+//        }
+//        else
+//            return false
     }
 
     /**
@@ -172,15 +187,45 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
      */
     fun getWorkoutsOfCombo(comboName : String) : MutableList<Workout>?{
         var workouts : MutableList<Workout> = mutableListOf()
-        val workoutsStr = COMBOS.getWorkoutsStrOfCombo( comboName)
-        if(workoutsStr == null) //combo doesn't exists
-            return null
+        val workoutsStr = COMBOS.getWorkoutsStrOfCombo( comboName) ?: return null //combo doesn't exists
         val workoutsIds = workoutsStr.split(',')
         for(id : String in workoutsIds){
             val workout = WORKOUTS.getWorkout(Integer.parseInt(id.trim()))
             workouts.add(workout!!)
         }
         return workouts
+    }
+
+    /**
+     * computes the time of the workout and adds the data to the db.
+     */
+    fun computeTotalTimeOfWorkout(workoutName: String) : Boolean {
+        var exercises = getExercisesOfWorkout(workoutName)
+        var seconds = 0
+        var minutes = 0
+        var hours = 0
+        if(exercises != null) {
+            for (exer in exercises) {
+                seconds += exer.seconds
+                minutes += exer.minutes
+            }
+
+            //fix the time
+            if (seconds > 59){
+                minutes += seconds / 60
+                seconds = seconds % 60
+            }
+            if(minutes > 59){
+                hours += minutes / 60
+                minutes = minutes % 60
+            }
+
+            WORKOUTS.setSecMinHou(workoutName, seconds, minutes, hours)
+        }else{
+            return false
+        }
+        return true
+
     }
 
 //    /**

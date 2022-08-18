@@ -10,7 +10,8 @@ class Workout {
     var totalHours : Int = 0
     var isFavorite : Boolean = false
     var timePlayed : Int = 0
-    var exercises: MutableList<String> = mutableListOf()
+    var numOfExercises : Int = 0
+    //var exercises: MutableList<String> = mutableListOf()
 
     constructor(name: String){
         this.name = name
@@ -23,6 +24,12 @@ class Workout {
         this.totalHours = totalHou
     }
 
+    fun setNumberOfExercises(num : Int) {
+        numOfExercises  = num
+    }
+    fun getNumberOfExercises() : Int{
+        return numOfExercises
+    }
     /**
      * updates the total time, total seconds, total minutes and total hours of the given workout.
      * @param timeToAdd in format MIN:SEC
@@ -80,9 +87,9 @@ class Workout {
         return padd(totalHours)+":" + padd(totalMinutes) + ":" + padd(totalSeconds)
     }
 
-    fun getNumOfExercises():Int{
-        return exercises.size
-    }
+//    fun getNumOfExercises():Int{
+//        return exercises.size
+//    }
 
     /**
      * returns a string of the given int' padds it with 0 if it is less than 10.
@@ -97,9 +104,9 @@ class Workout {
     /**
      * add the id of the exercise to the exercises list of the workout, and adds its time to the total time.
      */
-    fun addExercise(id : String, time: String){
-        exercises.add(id)
-        addToTotalTimeOfWorkout(time)
-    }
+//    fun addExercise(id : String, time: String){
+//        exercises.add(id)
+//        addToTotalTimeOfWorkout(time)
+//    }
 
 }

@@ -2,6 +2,7 @@ package com.workouts.DBHelper
 
 import android.content.ContentValues
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import com.workouts.DTOs.Combo
 
 class DAOCombos(db: DBHelper)  {
@@ -14,6 +15,22 @@ class DAOCombos(db: DBHelper)  {
     //private var currId = 1
     private val DB : DBHelper = db
 
+    /**
+     * return a hash set of all the combo names.
+     */
+    fun getComboNames(): HashSet<String>{
+        val lstNames : HashSet<String> = HashSet<String>()
+        val selectQuery = "SELECT $COL_NAME FROM $TABLE_NAME"
+        val db : SQLiteDatabase = DB.writableDatabase
+        val cursor:Cursor = db.rawQuery(selectQuery, null)
+        if (cursor.moveToFirst()){
+            do{
+                lstNames.add(cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME)))
+            }while (cursor.moveToNext())
+        }
+        db.close()
+        return lstNames
+    }
     /**
      * returns the combo with the given id, or null if it doesn't exists.
      */

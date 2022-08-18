@@ -21,18 +21,31 @@ class DAOWorkouts(db : DBHelper) {
         var COL_TOTAL_HOU = "TotalHours"
         var COL_IS_FAVORITE = "IsFavorite"
         var COL_TIMES_PLAYED = "TimePlayed"
-        var COL_EXERCISES = "Exercises"
+        var COL_NUM_OF_EXERCISES = "NumOfExercises"
+        //var COL_EXERCISES = "Exercises"
    // }
 
     //private var currId = 0
     private val DB : DBHelper = db
 
     /**
+     * set times of workout.
+     */
+    fun setSecMinHou(workoutName : String, seconds : Int, minutes : Int, hours : Int){
+        val values = ContentValues()
+        values.put(COL_TOTAL_SEC, seconds)
+        values.put(COL_TOTAL_MIN, minutes)
+        values.put(COL_TOTAL_HOU, hours)
+        val db : SQLiteDatabase = DB.writableDatabase
+        db.update(TABLE_NAME,values, "$COL_NAME = ?", arrayOf(workoutName))
+        db.close()
+    }
+    /**
      * returns hash set of all workouts.
      */
     fun getAllWorkouts() : HashSet<Workout>{
         val lstWorkouts : HashSet<Workout> = HashSet<Workout>()
-        val selectQuery = "SELECT * FROM $TABLE_NAME"
+        val selectQuery = "SELECT * FROM $TABLE_NAME ORDER BY $COL_ID"
         val db : SQLiteDatabase = DB.writableDatabase
         val cursor:Cursor = db.rawQuery(selectQuery, null)
         if (cursor.moveToFirst()){
@@ -46,7 +59,7 @@ class DAOWorkouts(db : DBHelper) {
                     workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
                     workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
                     workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
-                    workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
+                    //workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
                 }catch (e : IllegalArgumentException){
                     e.printStackTrace()
                 }
@@ -62,9 +75,9 @@ class DAOWorkouts(db : DBHelper) {
      */
     fun getFavoriteWorkouts() : HashSet<Workout>{
         val lstWorkouts : HashSet<Workout> = HashSet<Workout>()
-        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_IS_FAVORITE = ?"
+        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_IS_FAVORITE = ? ORDER BY $COL_ID"
         val db : SQLiteDatabase = DB.writableDatabase
-        val cursor:Cursor = db.rawQuery(selectQuery, arrayOf("TRUE")) //todo ????
+        val cursor:Cursor = db.rawQuery(selectQuery, arrayOf("" + 1)) //todo ????
         if (cursor.moveToFirst()){
             do{
                 var workout : Workout? = null
@@ -76,7 +89,7 @@ class DAOWorkouts(db : DBHelper) {
                     workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
                     workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
                     workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
-                    workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
+                    //workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
                 }catch (e : IllegalArgumentException){
                     e.printStackTrace()
                 }
@@ -107,9 +120,9 @@ class DAOWorkouts(db : DBHelper) {
 
     /**
      * adds a new workout to the table.
-     * @return false if unsuccessful
+     * @return workout id
      */
-    fun addWorkout( workout: Workout) : Boolean{
+    fun addWorkout( workout: Workout) : Int{
         val values = ContentValues()
         //values.put(COL_ID, currId)
         values.put(COL_NAME, workout.name)
@@ -118,15 +131,23 @@ class DAOWorkouts(db : DBHelper) {
         values.put(COL_TOTAL_HOU, workout.totalHours)
         values.put(COL_IS_FAVORITE, workout.isFavorite)
         values.put(COL_TIMES_PLAYED, workout.timePlayed)
-        values.put(COL_EXERCISES, workout.exercises.joinToString(","))
+        //values.put(COL_EXERCISES, workout.exercises.joinToString(","))
 
         val db : SQLiteDatabase = DB.writableDatabase
-        var isSuccessful : Long = db.insert(TABLE_NAME, null, values)
+        var id : Long = db.insert(TABLE_NAME, null, values)
         db.close()
 //        if(isSuccessful != -1L)
 //            currId += 1
-        return isSuccessful != -1L
+        return id.toInt()
 
+    }
+
+    fun setNumOfExercises(workoutId: Int, num : Int){
+        val values = ContentValues()
+        values.put(COL_NUM_OF_EXERCISES, num)
+        val db : SQLiteDatabase = DB.writableDatabase
+        db.update(TABLE_NAME,values, "$COL_ID = ?", arrayOf("" + workoutId))
+        db.close()
     }
 
     /**
@@ -144,31 +165,31 @@ class DAOWorkouts(db : DBHelper) {
      * adds the exercises id to the list of exercises in the exercises column of the given workout,
      * returns 0 if unsuccessful.
      */
-    fun addExerciseToWorkout( workoutName: String, exerciseId : Int) : Int{
-        val db : SQLiteDatabase = DB.writableDatabase
-        var currExercises : String? = getExercisesOfWorkoutStr(workoutName)
-        if (currExercises == null)
-            return 0
-        currExercises = currExercises + "," + exerciseId
-        val values = ContentValues()
-        values.put(COL_EXERCISES, currExercises)
-        return db.update(TABLE_NAME, values, "$COL_NAME = ?", arrayOf(workoutName)) //returns the number of rows affected
-    }
+//    fun addExerciseToWorkout( workoutName: String, exerciseId : Int) : Int{
+//        val db : SQLiteDatabase = DB.writableDatabase
+//        var currExercises : String? = getExercisesOfWorkoutStr(workoutName)
+//        if (currExercises == null)
+//            return 0
+//        currExercises = currExercises + "," + exerciseId
+//        val values = ContentValues()
+//        values.put(COL_EXERCISES, currExercises)
+//        return db.update(TABLE_NAME, values, "$COL_NAME = ?", arrayOf(workoutName)) //returns the number of rows affected
+//    }
 
     /**
      * returns the value of the exercises column of the workout, or null if the workout doesn't exists.
      */
-    fun getExercisesOfWorkoutStr( workoutName: String) : String?{
-        var exercisesStr : String? = null
-        val selectQuery = "SELECT $COL_EXERCISES FROM $TABLE_NAME WHERE $COL_NAME = ?"
-        val db : SQLiteDatabase = DB.writableDatabase
-        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(workoutName)) //todo??
-        if (cursor.moveToFirst()){
-            exercisesStr = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES))
-        }
-        db.close()
-        return exercisesStr
-    }
+//    fun getExercisesOfWorkoutStr( workoutName: String) : String?{
+//        var exercisesStr : String? = null
+//        val selectQuery = "SELECT $COL_EXERCISES FROM $TABLE_NAME WHERE $COL_NAME = ?"
+//        val db : SQLiteDatabase = DB.writableDatabase
+//        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(workoutName)) //todo??
+//        if (cursor.moveToFirst()){
+//            exercisesStr = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES))
+//        }
+//        db.close()
+//        return exercisesStr
+//    }
 
     /**
      * returns a list of total seconds, minutes, hours of the given workout.
@@ -292,11 +313,11 @@ class DAOWorkouts(db : DBHelper) {
      * sets the timePlayed value to 0.
      * @return true if successful, false otherwise.
      */
-    fun resetTimePlayed(workoutName: String):Boolean{
+    fun resetTimePlayed():Boolean{
         val values = ContentValues()
         values.put(COL_TIMES_PLAYED, 0)
         val db: SQLiteDatabase = DB.writableDatabase
-        var isSuccessful = db.update(TABLE_NAME, values, "$COL_NAME = ?", arrayOf(workoutName))
+        var isSuccessful = db.update(TABLE_NAME, values, null,null)
         db.close()
         return isSuccessful != 0
     }
@@ -316,7 +337,7 @@ class DAOWorkouts(db : DBHelper) {
             workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
             workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
             workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
-            workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
+            //workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
         }
         db.close()
         return workout
@@ -337,7 +358,7 @@ class DAOWorkouts(db : DBHelper) {
             workout.totalHours = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TOTAL_HOU))
             workout.isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IS_FAVORITE)) !=0
             workout.timePlayed = cursor.getInt(cursor.getColumnIndexOrThrow(COL_TIMES_PLAYED))
-            workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
+            //workout.exercises = cursor.getString(cursor.getColumnIndexOrThrow(COL_EXERCISES)).split(',').toMutableList()
         }
         db.close()
         return workout

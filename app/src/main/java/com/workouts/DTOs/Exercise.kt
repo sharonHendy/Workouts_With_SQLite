@@ -5,15 +5,21 @@ class Exercise {
     var name: String
     var seconds : Int = 0
     var minutes : Int = 0
+    var workout : Int = 0
+    var index : Int = 0
 
-    constructor( name: String, seconds : Int, minutes : Int){
+    constructor( name: String, seconds : Int, minutes : Int, workout: Int, index : Int){
         this.name = name
         this.seconds = seconds
         this.minutes = minutes
+        this.workout = workout
+        this.index = index
     }
 
-    constructor( name: String, time : String){
+    constructor( name: String, time : String, workout: Int, index : Int){
         this.name = name
+        this.workout = workout
+        this.index = index
 
         val minutesStr : String = time.substring(0,2)
         var secondsStr : String = ""

@@ -5,11 +5,12 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import com.workouts.DTOs.WeekPerformance
 import java.time.DayOfWeek
+import java.util.*
 
 class DAOWeekPerformances(db: DBHelper) {
     val TABLE_NAME = "Week_Performances"
 
-    val COL_ID = "Id"
+   // val COL_ID = "Id"
     val COL_SUN = "SUN"
     val COL_MON = "MON"
     val COL_TUS = "TUS"
@@ -17,6 +18,7 @@ class DAOWeekPerformances(db: DBHelper) {
     val COL_THU = "THU"
     val COL_FRI = "FRI"
     val COL_SAT = "SAT"
+    val COL_START_OF_WEEK = "StartOfWeekDate"
 
     //private var currId = 1
     //private var numOfWP = 0
@@ -26,11 +28,13 @@ class DAOWeekPerformances(db: DBHelper) {
      * returns the week performance with the given id, if there is no week performance with this id,
      * returns week performance with 0 values.
      */
-    fun getWeekPerformance( id :Int) :WeekPerformance{
+    fun getWeekPerformance( numOfWeek : Int) :WeekPerformance{
         var weekPer : WeekPerformance = WeekPerformance()
-        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_ID = ?"
+        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_START_OF_WEEK = ?"
+        var startOfWeek = getStartOfWeek(numOfWeek)
         val db: SQLiteDatabase = DB.writableDatabase
-        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(""+id))
+
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf(""+startOfWeek))
         if(cursor.moveToFirst()){
             weekPer.SUN = cursor.getFloat(cursor.getColumnIndexOrThrow(COL_SUN))
             weekPer.MON = cursor.getFloat(cursor.getColumnIndexOrThrow(COL_MON))
@@ -45,45 +49,60 @@ class DAOWeekPerformances(db: DBHelper) {
     }
 
     /**
-     * deletes the week performance with this id.
+     * deletes week performances with start date less than or equal to the given date.
      * @return true if successful, false otherwise.
      */
-    fun deleteWeekPerformance( id : Int): Boolean{
+    fun deleteWeekPerformance( untilDate : Long): Boolean{
         val db: SQLiteDatabase = DB.writableDatabase
-        val isSuccessful = db.delete(TABLE_NAME, "$COL_ID =?" , arrayOf(""+id))
+        val isSuccessful = db.delete(TABLE_NAME, "$COL_START_OF_WEEK <= ?" , arrayOf(""+untilDate))
         db.close()
         return isSuccessful != 0
     }
 
-    /**
-     * updates the id of the week performance to be the newId.
-     * @return true if successful, false otherwise.
-     */
-    fun updateId( id: Int, newId:Int): Boolean{
-        val values = ContentValues()
-        values.put(COL_ID, newId)
-        val db: SQLiteDatabase = DB.writableDatabase
-        val isSuccessful = db.update(TABLE_NAME,values,"$COL_ID = ?", arrayOf("" + id))
-        db.close()
-        return isSuccessful != 0
+//    /**
+//     * updates the id of the week performance to be the newId.
+//     * @return true if successful, false otherwise.
+//     */
+//    fun updateId( id: Int, newId:Int): Boolean{
+//        val values = ContentValues()
+//        values.put(COL_ID, newId)
+//        val db: SQLiteDatabase = DB.writableDatabase
+//        val isSuccessful = db.update(TABLE_NAME,values,"$COL_ID = ?", arrayOf("" + id))
+//        db.close()
+//        return isSuccessful != 0
+//    }
+
+    private fun getStartOfWeek(week : Int): Long {
+        //sets the calendar to show time of the first day of this week.
+        val cal: Calendar = Calendar.getInstance()
+        cal.add(Calendar.DATE, -(7 * (week -1)))
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+        return cal.timeInMillis
     }
 
     /**
      * adds a weeks performance. if the db already stores 4 week performances, deletes the oldest one
-     * and updates the ids. for DBHelper use only.
+     *  for DBHelper use only.
      * @return true if successful, false otherwise.
      */
     fun addWeekPerformance(): Boolean{
         //if(numOfWP == 4) {
-            deleteWeekPerformance(4) //deletes the forth week data todo if exists?
+
         //}
-        for(i in 3 downTo 1){ //updates the ids of the rest of the weeks
-            updateId(i, i+1)
-        }
+//        for(i in 3 downTo 1){ //updates the ids of the rest of the weeks
+//            updateId(i, i+1)
+//        }
+
+        val startOfWeek = getStartOfWeek(1)
+
+        deleteWeekPerformance(getStartOfWeek(3)) //deletes the forth week data
 
         //adds a new week performance.
         val values = ContentValues()
-        values.put(COL_ID, 1)
         values.put(COL_SUN, 0)
         values.put(COL_MON, 0)
         values.put(COL_TUS, 0)
@@ -91,6 +110,7 @@ class DAOWeekPerformances(db: DBHelper) {
         values.put(COL_THU, 0)
         values.put(COL_FRI, 0)
         values.put(COL_SAT, 0)
+        values.put(COL_START_OF_WEEK ,startOfWeek)
 
         val db = DB.writableDatabase
         val isSuccessful = db.insert(TABLE_NAME, null, values)
@@ -110,7 +130,7 @@ class DAOWeekPerformances(db: DBHelper) {
      */
     fun addTimeToWeekPerformance( day : Int, time : Float){
 
-        var column : String = if(day == 1)
+        val column : String = if(day == 1)
             COL_SUN
         else if (day == 2)
             COL_MON
@@ -125,23 +145,28 @@ class DAOWeekPerformances(db: DBHelper) {
         else
             COL_SAT
 
-        //checks if there if a week performance row in the table, if not adds one.
+        //sets the calendar to show time of the first day of this week.
+        val startOfWeek = getStartOfWeek(1)
+
+        //checks if there is a week performance row in the table of this week.
         val db : SQLiteDatabase = DB.writableDatabase
-        val selectQuery = "SELECT * FROM $TABLE_NAME"
-        val cursor = db.rawQuery(selectQuery, null)
+        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_START_OF_WEEK = ?"
+        val cursor = db.rawQuery(selectQuery, arrayOf(""+startOfWeek))
         if(!cursor.moveToFirst()){
             cursor.close()
             db.close()
             addWeekPerformance()
         }
+
+        //adds the time to this week performance.
         val updateQuery = "UPDATE $TABLE_NAME SET $column = $column + ? " +
-                "WHERE $COL_ID = 1"
-        db.execSQL(updateQuery, arrayOf(""+time))
+                "WHERE $COL_START_OF_WEEK = ?"
+        db.execSQL(updateQuery, arrayOf(""+time, ""+ startOfWeek))
         db.close()
     }
 
     /**
-     * sets all the columns to be 0 (except the id).
+     * sets all the columns to be 0.
      */
     fun clearData(){
         val db : SQLiteDatabase = DB.writableDatabase

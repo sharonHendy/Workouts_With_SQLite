@@ -12,7 +12,8 @@ class DAOExercises(db: DBHelper) {
     val COL_NAME = "Name"
     val COL_SEC = "Seconds"
     val COL_MIN = "Minutes"
-
+    val COL_INDEX = "IndexInWorkout"
+    val COL_WORKOUT = "Workout"
     //private var currId = 0
     private val DB : DBHelper = db
 
@@ -21,7 +22,7 @@ class DAOExercises(db: DBHelper) {
      */
     fun getExercisesNames(): HashSet<String>{
         val lstOfNames = HashSet<String>()
-        val selectQuery = "SELECT $COL_NAME FROM $TABLE_NAME"
+        val selectQuery = "SELECT DISTINCT $COL_NAME FROM $TABLE_NAME"
         val db : SQLiteDatabase = DB.writableDatabase
         val cursor : Cursor = db.rawQuery(selectQuery, null)
         if(cursor.moveToFirst()) {
@@ -29,6 +30,7 @@ class DAOExercises(db: DBHelper) {
                 lstOfNames.add(cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME)))
             } while (cursor.moveToNext())
         }
+        cursor.close()
         db.close()
         return lstOfNames
     }
@@ -63,6 +65,8 @@ class DAOExercises(db: DBHelper) {
         values.put(COL_NAME, exercise.name)
         values.put(COL_SEC, exercise.seconds)
         values.put(COL_MIN, exercise.minutes)
+        values.put(COL_WORKOUT, exercise.workout)
+        values.put(COL_INDEX, exercise.index)
         val db : SQLiteDatabase = DB.writableDatabase
         val id = db.insert(TABLE_NAME, null, values)
         db.close()
@@ -86,10 +90,37 @@ class DAOExercises(db: DBHelper) {
             val name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
             val seconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_SEC))
             val minutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_MIN))
-            exercise = Exercise(name, seconds, minutes)
+            val workout = cursor.getInt(cursor.getColumnIndexOrThrow(COL_WORKOUT))
+            val index = cursor.getInt(cursor.getColumnIndexOrThrow(COL_INDEX))
+            exercise = Exercise(name, seconds, minutes, workout, index)
         }
         db.close()
         return exercise
+    }
+
+
+    /**
+     * returns a hash set of the workouts exercises.
+     */
+    fun getExercisesOfWorkout(workoutId : Int) : MutableList<Exercise>{
+        val lstExercise : MutableList<Exercise> = mutableListOf()
+        val db : SQLiteDatabase = DB.writableDatabase
+        val selectQuery : String = "SELECT * FROM $TABLE_NAME WHERE $COL_WORKOUT = ? " +
+                "ORDER BY $COL_INDEX"
+        val cursor : Cursor = db.rawQuery(selectQuery, arrayOf("" + workoutId))
+        if(cursor.moveToFirst()){
+            do {
+                val name = cursor.getString(cursor.getColumnIndexOrThrow(COL_NAME))
+                val seconds = cursor.getInt(cursor.getColumnIndexOrThrow(COL_SEC))
+                val minutes = cursor.getInt(cursor.getColumnIndexOrThrow(COL_MIN))
+                val workout = cursor.getInt(cursor.getColumnIndexOrThrow(COL_WORKOUT))
+                val index = cursor.getInt(cursor.getColumnIndexOrThrow(COL_INDEX))
+                lstExercise.add(Exercise(name, seconds, minutes, workout, index))
+            }while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return lstExercise
     }
 
     /**
@@ -99,6 +130,17 @@ class DAOExercises(db: DBHelper) {
     fun deleteExercise(id: Int): Boolean{
         val db : SQLiteDatabase = DB.writableDatabase
         val isSuccessful = db.delete(TABLE_NAME, "$COL_ID = ?", arrayOf(""+id))
+        db.close()
+        return isSuccessful != 0
+    }
+
+    /**
+     * deletes the exercises of the workout with the given id.
+     * @return true if successful, false otherwise.
+     */
+    fun deleteExercisesOfWorkout(workoutId: Int) : Boolean{
+        val db : SQLiteDatabase = DB.writableDatabase
+        val isSuccessful = db.delete(TABLE_NAME, "$COL_WORKOUT = ?", arrayOf(""+workoutId))
         db.close()
         return isSuccessful != 0
     }
