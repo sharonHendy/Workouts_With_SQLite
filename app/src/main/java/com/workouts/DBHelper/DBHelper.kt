@@ -197,7 +197,7 @@ class DBHelper(Context : Context) : SQLiteOpenHelper(Context, DATABASE_NAME, nul
     }
 
     /**
-     * computes the time of the workout and adds the data to the d
+     * computes the time of the workout and adds the data to the db
      */
     fun computeTotalTimeOfWorkout(workoutName: String) : Boolean {
         var exercises = getExercisesOfWorkout(workoutName)
