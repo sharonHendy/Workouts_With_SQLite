@@ -157,12 +157,28 @@ class DAOWeekPerformances(db: DBHelper) {
             db.close()
             addWeekPerformance()
         }
+        db.close()
+
+        val newTime = time + getTimeOfDayInWeek(column, ""+startOfWeek)
 
         //adds the time to this week performance.
-        val updateQuery = "UPDATE $TABLE_NAME SET $column = $column + ? " +
+        val db1 : SQLiteDatabase = DB.writableDatabase
+        val updateQuery = "UPDATE $TABLE_NAME SET $column = ? " +
                 "WHERE $COL_START_OF_WEEK = ?"
-        db.execSQL(updateQuery, arrayOf(""+time, ""+ startOfWeek))
+        db1.execSQL(updateQuery, arrayOf(""+newTime, ""+ startOfWeek))
+        db1.close()
+    }
+
+    fun getTimeOfDayInWeek(column : String, startOfWeek : String): Float {
+        var time = 0f;
+        val db : SQLiteDatabase = DB.writableDatabase
+        val selectQuery = "SELECT * FROM $TABLE_NAME WHERE $COL_START_OF_WEEK = ?"
+        val cursor = db.rawQuery(selectQuery, arrayOf(startOfWeek))
+        if(cursor.moveToFirst()){
+            time = cursor.getFloat(cursor.getColumnIndexOrThrow(column))
+        }
         db.close()
+        return time
     }
 
     /**
