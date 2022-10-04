@@ -248,7 +248,7 @@ open class PlayWorkout : AppCompatActivity()  {
                 }
                 else{ //workout finished, stops the timer and resets
                     playerEnd?.start()
-                    addToTimePlayedOfWorkout()
+                    //addToTimePlayedOfWorkout()
                     stopTimeCounter()
                 }
             }
